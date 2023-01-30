@@ -14,18 +14,18 @@ nltk.download("stopwords")
 STEMMER = nltk.stem.snowball.SnowballStemmer("romanian")
 
 
-def normalize_word(token):
-    # TODO: stem
-    return remove_diacritics(STEMMER.stem(token))
+def normalize_word(token, stem=True):
+    token = remove_diacritics(token)
+    if not stem:
+        return token
+    token = STEMMER.stem(token)
+    return token
 
 
 def load_vocabulary_words():
     vocab_words = set(read_text_file(VOCAB_PATH).split())
     custom_words = set(read_text_file(WORDLIST_PATH).split())
     vocab_words = vocab_words.union(custom_words)
-    # TODO: do this once, or change file directly
-    vocab_words_normalized = [normalize_word(w) for w in vocab_words]
-    vocab_words = vocab_words.union(set(vocab_words_normalized))
     stopwords_words = nltk.corpus.stopwords.words("romanian")
     vocab_words = vocab_words.union(set(stopwords_words))
     return vocab_words
