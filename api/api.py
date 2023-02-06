@@ -64,6 +64,7 @@ async def do_work(job_id, file):
     (
         CONTEXT[job_id][JobSpec.PDF_PATH],
         CONTEXT[job_id][JobSpec.TEXT_PATH],
+        CONTEXT[job_id][JobSpec.ANALYZED_PDF_PATH],
     ) = await ocr_controller.run_ocr(file)
     CONTEXT[job_id][JobSpec.STATUS] = Status.COMPLETE
 
@@ -111,6 +112,16 @@ async def get_result(job_id: str):
     }
     return FileResponse(path=down_file, media_type="text/plain", headers=headers)
 
+@app.get("/ocr/{job_id}/analyze_pdf", tags=["highlight"])
+async def get_analyzed_result(job_id: str):
+    assert_job_done(job_id)
+    orig_pdf_file = CONTEXT[job_id][JobSpec.PDF_PATH]
+    down_file = CONTEXT[job_id][JobSpec.ANALYZED_PDF_PATH]
+    ocr_controller.analyze_pdf(orig_pdf_file, down_file)
+    headers = {
+        "Content-Disposition": f"attachment; filename={os.path.basename(down_file)}"
+    }
+    return FileResponse(path=down_file, media_type="application/pdf", headers=headers)
 
 @app.get("/ocr/{job_id}/quality", tags=["quality"])
 async def quality(job_id):
