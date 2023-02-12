@@ -6,7 +6,7 @@ from tempfile import mkdtemp
 from fastapi import File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
-from ..services import ocr_evaluation, ocr_service, doc_analysis
+from ..services import doc_analysis, ocr_evaluation, ocr_service
 from ..utils.file_util import make_download_file_path, read_text_file, upload
 
 LOGGER = logging.getLogger(__name__)
@@ -60,6 +60,7 @@ def ocr_simple(file: UploadFile = File(...)) -> FileResponse:
 def estimate_quality(txt_file_path: str) -> float:
     """Estimate the quality of the OCR process"""
     return ocr_evaluation.estimate_quality(read_text_file(txt_file_path))
+
 
 def analyze_pdf(in_pdf_path: str, out_pdf_path: str):
     """Highlight keywords in pdf [under development]"""
