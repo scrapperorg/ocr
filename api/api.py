@@ -1,11 +1,12 @@
+import logging
 import os
 from typing import Any, Dict, Union
-import logging
+
 import requests
-from fastapi import FastAPI, File, HTTPException, UploadFile, Header
+from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from starlette.middleware.cors import CORSMiddleware
-from tenacity import retry, stop_after_attempt, before_log
+from tenacity import before_log, retry, stop_after_attempt
 
 from api.config import settings
 from api.constants import JobSpec, Status
@@ -39,6 +40,7 @@ tags_metadata = [
         "name": "quality",
         "description": "Get the quality of the OCR process for the job.",
     },
+    {"name": "highlight", "description": "Get the PDF file with keywords highlighted."},
 ]
 
 
@@ -73,6 +75,7 @@ async def do_work(job_id, file):
     (
         CONTEXT[job_id][JobSpec.PDF_PATH],
         CONTEXT[job_id][JobSpec.TEXT_PATH],
+        CONTEXT[job_id][JobSpec.ANALYZED_PDF_PATH],
     ) = await ocr_controller.run_ocr(file)
     status = Status.COMPLETE
     try:
@@ -83,8 +86,11 @@ async def do_work(job_id, file):
 
 
 @app.post("/ocr", tags=["ocr"])
-async def ocr(file: UploadFile = File(...), job_id: Union[str, None] = Header(default=None, convert_underscores=False)):
-    #job_id = str(uuid.uuid4().hex)
+async def ocr(
+    file: UploadFile = File(...),
+    job_id: Union[str, None] = Header(default=None, convert_underscores=False),
+):
+    # job_id = str(uuid.uuid4().hex)
     CONTEXT[job_id] = {JobSpec.STATUS: Status.PROCESSING}
     # Run OCR on the file asynchronously
     # asyncio.run_coroutine_threadsafe(do_work(job_id, file), loop=asyncio.get_running_loop())
@@ -124,6 +130,18 @@ async def get_result(job_id: str):
         "Content-Disposition": f"attachment; filename={os.path.basename(down_file)}"
     }
     return FileResponse(path=down_file, media_type="text/plain", headers=headers)
+
+
+@app.get("/ocr/{job_id}/analyze_pdf", tags=["highlight"])
+async def get_analyzed_result(job_id: str):
+    assert_job_done(job_id)
+    orig_pdf_file = CONTEXT[job_id][JobSpec.PDF_PATH]
+    down_file = CONTEXT[job_id][JobSpec.ANALYZED_PDF_PATH]
+    ocr_controller.analyze_pdf(orig_pdf_file, down_file)
+    headers = {
+        "Content-Disposition": f"attachment; filename={os.path.basename(down_file)}"
+    }
+    return FileResponse(path=down_file, media_type="application/pdf", headers=headers)
 
 
 @app.get("/ocr/{job_id}/quality", tags=["quality"])

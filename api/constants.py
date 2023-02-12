@@ -19,6 +19,7 @@ class Status:
 class JobSpec:
     PDF_PATH = "pdf_path"
     TEXT_PATH = "text_path"
+    ANALYZED_PDF_PATH = "analyzed_pdf_path"
     STATUS = "status"
     ID = "job_id"
     QUALITY = "quality"
