@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def load_keywords():
-    keywords = set(read_text_file(KEYWORDS_PATH).split())
+    keywords = set(read_text_file(KEYWORDS_PATH).split('\n'))
     # TODO: more sophisticated keyword matching 
     return keywords
 
