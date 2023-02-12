@@ -6,6 +6,8 @@ services:
             context: .
             dockerfile: ./Dockerfile
         privileged: false
+        environment:
+            - OCR_DONE_WEBHOOK="http://localhost:8081/ocr_done"
         volumes:
             - .:/app
         tty: true

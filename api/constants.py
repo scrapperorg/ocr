@@ -13,6 +13,7 @@ class Status:
     COMPLETE = "complete"
     FAILED = "failed"
     PROCESSING = "processing"
+    WB_FAILED = "complete, but webhook_failed"
 
 
 class JobSpec:

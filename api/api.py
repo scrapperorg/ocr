@@ -1,16 +1,19 @@
 import os
-import uuid
-from typing import Any, Dict
-
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from typing import Any, Dict, Union
+import logging
+import requests
+from fastapi import FastAPI, File, HTTPException, UploadFile, Header
 from fastapi.responses import FileResponse
 from starlette.middleware.cors import CORSMiddleware
+from tenacity import retry, stop_after_attempt, before_log
 
 from api.config import settings
 from api.constants import JobSpec, Status
 
 from .controllers import ocr_controller
 
+LOGGER = logging.getLogger(__name__)
+OCR_DONE_WEBHOOK = os.environ.get("OCR_DONE_WEBHOOK", "http://localhost:8081/ocr_done")
 CONTEXT: Dict[str, Dict[str, Any]] = {}
 
 
@@ -60,18 +63,29 @@ async def ocr_simple(file: UploadFile = File(...)):
     return ocr_controller.ocr_simple(file)
 
 
+@retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
+def call_webhook(job_id):
+    requests.post(OCR_DONE_WEBHOOK, json={"job_id": job_id})
+    raise Exception("Webhook failed!")
+
+
 async def do_work(job_id, file):
     (
         CONTEXT[job_id][JobSpec.PDF_PATH],
         CONTEXT[job_id][JobSpec.TEXT_PATH],
         CONTEXT[job_id][JobSpec.ANALYZED_PDF_PATH],
     ) = await ocr_controller.run_ocr(file)
-    CONTEXT[job_id][JobSpec.STATUS] = Status.COMPLETE
+    status = Status.COMPLETE
+    try:
+        call_webhook(job_id)
+    except:
+        status = Status.WB_FAILED
+    CONTEXT[job_id][JobSpec.STATUS] = status
 
 
 @app.post("/ocr", tags=["ocr"])
-async def ocr(file: UploadFile = File(...)):
-    job_id = str(uuid.uuid4().hex)
+async def ocr(file: UploadFile = File(...), job_id: Union[str, None] = Header(default=None, convert_underscores=False)):
+    #job_id = str(uuid.uuid4().hex)
     CONTEXT[job_id] = {JobSpec.STATUS: Status.PROCESSING}
     # Run OCR on the file asynchronously
     # asyncio.run_coroutine_threadsafe(do_work(job_id, file), loop=asyncio.get_running_loop())
