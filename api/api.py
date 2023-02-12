@@ -39,6 +39,10 @@ tags_metadata = [
         "name": "quality",
         "description": "Get the quality of the OCR process for the job.",
     },
+    {
+        "name": "highlight",
+        "description": "Get the PDF file with keywords highlighted."    
+    }
 ]
 
 
