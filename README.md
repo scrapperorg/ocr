@@ -2,12 +2,32 @@
 
 ## Running as a docker container
 
+### Running the latest release
+
 ```bash
+# start services
+docker compose -f docker-compose_release.yml up -d 
+# close services
+docker compose -f docker-compose_release.yml down 
+```
+
+### Building it from scratch
+
+```bash
+# build services
+docker compose build 
+
+# run services
 docker compose up -d 
+
+# stop services
+docker compose down
 
 # run tests
 docker compose exec ocr bash -c "./scripts/run_tests.sh"
 ```
+
+
 
 ## Running locally
 This code is not yet ready to be deployed in production.
