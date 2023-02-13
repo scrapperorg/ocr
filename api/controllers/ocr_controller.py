@@ -23,7 +23,8 @@ async def run_ocr(file: UploadFile = File(...)) -> FileResponse:
         analyzed_pdf_output = f"{pdf_output}-highlight.pdf"
         txt_output = f"{pdf_output}.txt"
         # await ocr_service.call_ocr_async(pdf_input, pdf_output, txt_output)
-        ocr_service.call_ocr(pdf_input, pdf_output, txt_output)
+        ocr_service.call_ocr(pdf_input, pdf_output)
+        ocr_service.extract_ocrized_text(pdf_output, txt_output)
         return pdf_output, txt_output, analyzed_pdf_output
     except Exception as e:
         LOGGER.exception(e)
