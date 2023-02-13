@@ -4,6 +4,9 @@
 
 ```bash
 docker compose up -d 
+
+# run tests
+docker compose exec ocr bash -c "./scripts/run_tests.sh"
 ```
 
 ## Running locally
