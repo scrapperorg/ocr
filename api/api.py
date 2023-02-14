@@ -80,7 +80,8 @@ async def do_work(job_id, file):
     status = Status.COMPLETE
     try:
         call_webhook(job_id)
-    except:
+    except Exception as e:
+        LOGGER.exception(e)
         status = Status.WB_FAILED
     CONTEXT[job_id][JobSpec.STATUS] = status
 
