@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+    ocr:
+        image: readable/ocr:main
+        privileged: false
+        environment:
+            - OCR_DONE_WEBHOOK="http://localhost:8081/ocr_done"
+        volumes:
+            - .:/app
+        tty: true
+        ports:
+            - "8080:8080"
+        command: bash "./scripts/start-dev.sh"
+
