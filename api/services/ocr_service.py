@@ -51,5 +51,5 @@ def extract_ocrized_text(pdf_file, txt_output_file):
     with fitz.open(pdf_file) as pdf_f:
         for p in pdf_f.pages():
             text += p.get_text()
-    with open(txt_output_file, "w", encoding='utf-8') as txt_f:
+    with open(txt_output_file, "w", encoding="utf-8") as txt_f:
         txt_f.write(text)
