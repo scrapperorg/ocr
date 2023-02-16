@@ -13,7 +13,7 @@ FAIL_SAFE_ARGS = ["--output-type", "pdf"]
 OCRMYPDF = "ocrmypdf"
 
 
-def call_ocr(in_file, pdf_output, txt_output):
+def call_ocr(in_file, pdf_output):
     ocrmypdf_args = [OCRMYPDF, *CMD_ARGS, in_file, pdf_output]
     proc = run(ocrmypdf_args, capture_output=True, encoding="utf-8")
     if proc.returncode != 0:
