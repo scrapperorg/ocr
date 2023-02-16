@@ -68,7 +68,7 @@ async def ocr_simple(file: UploadFile = File(...)):
 @retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
 def call_webhook(job_id):
     requests.post(OCR_DONE_WEBHOOK, json={"job_id": job_id})
-    # raise Exception("Webhook failed!")
+    #raise Exception("Webhook failed!")
 
 
 async def do_work(job_id, file):
@@ -82,7 +82,7 @@ async def do_work(job_id, file):
         call_webhook(job_id)
     except Exception as e:
         LOGGER.exception(e)
-        status = Status.COMPLETE
+        status = Status.WB_FAILED
     CONTEXT[job_id][JobSpec.STATUS] = status
 
 
@@ -102,7 +102,7 @@ async def ocr(
 def assert_job_done(job_id: str):
     if job_id not in CONTEXT:
         raise HTTPException(status_code=404, detail="Job not found")
-    if CONTEXT[job_id][JobSpec.STATUS] != "complete":
+    if CONTEXT[job_id][JobSpec.STATUS] not in {Status.COMPLETE, Status.WB_FAILED}:
         raise HTTPException(status_code=422, detail="Job not complete")
 
 
