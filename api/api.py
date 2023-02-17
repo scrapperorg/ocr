@@ -25,7 +25,7 @@ tags_metadata = [
     },
     {
         "name": "ocr",
-        "description": "Currently operation is blocking, but that will change in the near future. Perform OCR on the PDF and return a job id. The job id has the pdf, text and other properties attached. Operation is non-blocking.",
+        "description": "Currently operation is blocking, but that will change in the near future. Perform OCR on the PDF and return a job id. The job id has the pdf, text and other properties attached. Operation should be non-blocking.",
     },
     {
         "name": "status",
@@ -68,7 +68,7 @@ async def ocr_simple(file: UploadFile = File(...)):
 @retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
 def call_webhook(job_id):
     requests.post(OCR_DONE_WEBHOOK, json={"job_id": job_id})
-    # raise Exception("Webhook failed!")
+    raise Exception("Webhook failed!")
 
 
 async def do_work(job_id, file):
