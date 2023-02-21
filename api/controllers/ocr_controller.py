@@ -3,16 +3,25 @@ import os
 from pathlib import Path
 from tempfile import mkdtemp
 
+import requests
 from fastapi import File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
+from tenacity import before_log, retry, stop_after_attempt
 
 from ..services import doc_analysis, ocr_evaluation, ocr_service
 from ..utils.file_util import make_download_file_path, read_text_file, upload
 
+OCR_DONE_WEBHOOK = os.environ.get("OCR_DONE_WEBHOOK", "http://localhost:8081/ocr_done")
 LOGGER = logging.getLogger(__name__)
 
 
-async def run_ocr(file: UploadFile = File(...)) -> FileResponse:
+@retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
+def call_webhook(job_id: str):
+    requests.post(OCR_DONE_WEBHOOK, json={"job_id": job_id})
+    raise Exception("Webhook failed!")
+
+
+async def run_ocr(job_id: str, file: UploadFile = File(...)) -> FileResponse:
     # TODO: Fix async calls
 
     try:
@@ -25,6 +34,10 @@ async def run_ocr(file: UploadFile = File(...)) -> FileResponse:
         # await ocr_service.call_ocr_async(pdf_input, pdf_output, txt_output)
         ocr_service.call_ocr(pdf_input, pdf_output)
         ocr_service.extract_ocrized_text(pdf_output, txt_output)
+        try:
+            call_webhook(job_id)
+        except Exception as e:
+            LOGGER.exception(e)
         return pdf_output, txt_output, analyzed_pdf_output
     except Exception as e:
         LOGGER.exception(e)

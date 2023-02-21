@@ -2,11 +2,9 @@ import logging
 import os
 from typing import Any, Dict, Union
 
-import requests
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from starlette.middleware.cors import CORSMiddleware
-from tenacity import before_log, retry, stop_after_attempt
 
 from api.config import settings
 from api.constants import JobSpec, Status
@@ -14,7 +12,6 @@ from api.constants import JobSpec, Status
 from .controllers import ocr_controller
 
 LOGGER = logging.getLogger(__name__)
-OCR_DONE_WEBHOOK = os.environ.get("OCR_DONE_WEBHOOK", "http://localhost:8081/ocr_done")
 CONTEXT: Dict[str, Dict[str, Any]] = {}
 
 
@@ -65,24 +62,13 @@ async def ocr_simple(file: UploadFile = File(...)):
     return ocr_controller.ocr_simple(file)
 
 
-@retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
-def call_webhook(job_id):
-    requests.post(OCR_DONE_WEBHOOK, json={"job_id": job_id})
-    raise Exception("Webhook failed!")
-
-
-async def do_work(job_id, file):
+async def do_work(job_id: str, file):
     (
         CONTEXT[job_id][JobSpec.PDF_PATH],
         CONTEXT[job_id][JobSpec.TEXT_PATH],
         CONTEXT[job_id][JobSpec.ANALYZED_PDF_PATH],
     ) = await ocr_controller.run_ocr(file)
     status = Status.COMPLETE
-    try:
-        call_webhook(job_id)
-    except Exception as e:
-        LOGGER.exception(e)
-        status = Status.WB_FAILED
     CONTEXT[job_id][JobSpec.STATUS] = status
 
 
