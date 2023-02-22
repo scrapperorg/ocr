@@ -4,7 +4,12 @@ set -e
 
 DEFAULT_MODULE_NAME=api.api
 
-OCR_DONE_WEBHOOK='http://localhost:8081/ocr_done'
+if [[ -z "${OCR_DONE_WEBHOOK}" ]]; then
+  OCR_DONE_WEBHOOK="missing value"
+  echo "**WARN**: Missing OCR_DONE_WEBHOOK env variable"
+fi
+
+echo "**INFO**: Using OCR_DONE_WEBHOOK=${OCR_DONE_WEBHOOK}"
 
 MODULE_NAME=${MODULE_NAME:-$DEFAULT_MODULE_NAME}
 VARIABLE_NAME=${VARIABLE_NAME:-app}
