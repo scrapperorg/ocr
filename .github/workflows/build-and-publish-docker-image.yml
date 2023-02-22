@@ -23,6 +23,12 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
+
+      - name: Make a previous version
+        run: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }} && \
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }} ${{ secrets.DOCKERHUB_USERNAME }}/ocr:previous && \
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/ocr:previous
   
       - name: Build and push
         uses: docker/build-push-action@v4
