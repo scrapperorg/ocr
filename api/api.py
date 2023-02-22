@@ -67,9 +67,8 @@ async def do_work(job_id: str, file):
         CONTEXT[job_id][JobSpec.PDF_PATH],
         CONTEXT[job_id][JobSpec.TEXT_PATH],
         CONTEXT[job_id][JobSpec.ANALYZED_PDF_PATH],
-    ) = await ocr_controller.run_ocr(file)
-    status = Status.COMPLETE
-    CONTEXT[job_id][JobSpec.STATUS] = status
+    ) = await ocr_controller.run_ocr(job_id, file)
+    CONTEXT[job_id][JobSpec.STATUS] = Status.COMPLETE
 
 
 @app.post("/ocr", tags=["ocr"])
