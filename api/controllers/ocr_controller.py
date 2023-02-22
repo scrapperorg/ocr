@@ -17,13 +17,12 @@ LOGGER = logging.getLogger(__name__)
 
 @retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
 def call_webhook(job_id: str):
-    requests.post(OCR_DONE_WEBHOOK, json={"job_id": job_id})
-    raise Exception("Webhook failed!")
+    response = requests.post(OCR_DONE_WEBHOOK, json={"job_id": job_id})
+    LOGGER.info(f"Webhook response {response.text}")
 
 
 async def run_ocr(job_id: str, file: UploadFile = File(...)) -> FileResponse:
     # TODO: Fix async calls
-
     try:
         work_folder = Path(mkdtemp(prefix="ocrservice.io."))
         # pdf_input = await upload_async(file, work_folder)
