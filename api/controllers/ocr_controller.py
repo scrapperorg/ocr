@@ -19,7 +19,7 @@ LOGGER = logging.getLogger(__name__)
 def call_webhook(job_id: str):
     LOGGER.info(f"Calling webhook for {job_id}")
     response = requests.post(OCR_DONE_WEBHOOK, json={"job_id": job_id})
-    LOGGER.debug(f"Webhook response {response.text}")
+    LOGGER.info(f"Webhook response {response.text}")
 
 
 async def run_ocr(job_id: str, file: UploadFile = File(...)) -> FileResponse:
@@ -32,7 +32,7 @@ async def run_ocr(job_id: str, file: UploadFile = File(...)) -> FileResponse:
         analyzed_pdf_output = f"{pdf_output}-highlight.pdf"
         txt_output = f"{pdf_output}.txt"
         # await ocr_service.call_ocr_async(pdf_input, pdf_output, txt_output)
-        LOGGER.debug(f"Doing OCR for {job_id}")
+        LOGGER.info(f"Doing OCR for {job_id}")
         ocr_service.call_ocr(pdf_input, pdf_output)
         ocr_service.extract_ocrized_text(pdf_output, txt_output)
         try:
