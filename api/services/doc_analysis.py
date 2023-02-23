@@ -19,10 +19,14 @@ KEYWORDS = load_keywords()
 
 
 def highlight_keywords(input_pdf_path, output_pdf_path):
+    keywords_metadata = {}
+
     with fitz.open(input_pdf_path) as pdfDoc:
         for pg in range(pdfDoc.page_count):
             page = pdfDoc[pg]
             for keyword in KEYWORDS:
+                # keywords_metadata[] = ....
+                # TODO: populate keywords_metadata
                 # TODO: improved search, at token level, over normalized words, etc
                 matching_val_area = page.search_for(keyword)
                 highlight = page.add_highlight_annot(matching_val_area)
@@ -33,3 +37,5 @@ def highlight_keywords(input_pdf_path, output_pdf_path):
     with open(output_pdf_path, mode="wb") as f:
         f.write(output_buffer.getbuffer())
     # TODO: handle errors
+
+    return keywords_metadata

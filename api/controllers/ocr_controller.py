@@ -79,4 +79,4 @@ def estimate_quality(txt_file_path: str) -> float:
 
 def analyze_pdf(in_pdf_path: str, out_pdf_path: str):
     """Highlight keywords in pdf [under development]"""
-    doc_analysis.highlight_keywords(in_pdf_path, out_pdf_path)
+    return doc_analysis.highlight_keywords(in_pdf_path, out_pdf_path)

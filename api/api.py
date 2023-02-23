@@ -38,6 +38,8 @@ tags_metadata = [
         "description": "Get the quality of the OCR process for the job.",
     },
     {"name": "highlight", "description": "Get the PDF file with keywords highlighted."},
+    {"name": "metadata", "description": "Metadata on keywords locations."},
+
 ]
 
 
@@ -123,7 +125,9 @@ async def get_analyzed_result(job_id: str):
     assert_job_done(job_id)
     orig_pdf_file = CONTEXT[job_id][JobSpec.PDF_PATH]
     down_file = CONTEXT[job_id][JobSpec.ANALYZED_PDF_PATH]
-    ocr_controller.analyze_pdf(orig_pdf_file, down_file)
+    keywords_metadata = ocr_controller.analyze_pdf(orig_pdf_file, down_file)
+    CONTEXT[job_id][JobSpec.KEYWORDS] = keywords_metadata
+
     headers = {
         "Content-Disposition": f"attachment; filename={os.path.basename(down_file)}"
     }
@@ -133,11 +137,17 @@ async def get_analyzed_result(job_id: str):
 @app.get("/ocr/{job_id}/quality", tags=["quality"])
 async def quality(job_id):
     assert_job_done(job_id)
-    # TODO: optimize? (only process file once)
     down_text_file = CONTEXT[job_id][JobSpec.TEXT_PATH]
     CONTEXT[job_id][JobSpec.QUALITY] = ocr_controller.estimate_quality(down_text_file)
     return {"ocr_quality_percent": CONTEXT[job_id][JobSpec.QUALITY]}
 
+
+@app.get("/ocr/{job_id}/keywords", tags=["metadata"])
+async def get_analyzed_result(job_id: str):
+    # assert_job_done(job_id)
+    # TODO: assert highlight done!
+
+    return {"results": CONTEXT[job_id][JobSpec.KEYWORDS]}
 
 @app.get("/")
 async def root():

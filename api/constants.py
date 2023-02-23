@@ -23,6 +23,8 @@ class JobSpec:
     STATUS = "status"
     ID = "job_id"
     QUALITY = "quality"
+    KEYWORDS = "keywords_metadata"
+    # PREPROCESSED_TEXT = ... # TODO
 
 
 class Environment(str, Enum):
