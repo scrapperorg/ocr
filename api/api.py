@@ -2,8 +2,7 @@ import logging
 import os
 from typing import Any, Dict, Union
 
-from fastapi import FastAPI, File, Header, HTTPException, UploadFile
-from fastapi import BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from starlette.middleware.cors import CORSMiddleware
 
@@ -76,7 +75,7 @@ def do_work(job_id: str, file):
 def ocr_b(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    job_id: Union[str, None] = Header(default=None, convert_underscores=False)
+    job_id: Union[str, None] = Header(default=None, convert_underscores=False),
 ):
     CONTEXT[job_id] = {JobSpec.STATUS: Status.PROCESSING}
     background_tasks.add_task(do_work, job_id, file)
@@ -86,7 +85,7 @@ def ocr_b(
 @app.post("/ocr", tags=["ocr"])
 def ocr(
     file: UploadFile = File(...),
-    job_id: Union[str, None] = Header(default=None, convert_underscores=False)
+    job_id: Union[str, None] = Header(default=None, convert_underscores=False),
 ):
     CONTEXT[job_id] = {JobSpec.STATUS: Status.PROCESSING}
     do_work(job_id, file)
