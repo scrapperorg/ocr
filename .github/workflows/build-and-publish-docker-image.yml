@@ -49,7 +49,7 @@ jobs:
       - name: Running tests
         uses: cloudposse/github-action-docker-compose-test-run@main
         with:
-          file: docker-compose_release.yml
+          file: docker-compose.yml
           service: ocr
           command: scripts/run_tests.sh
 

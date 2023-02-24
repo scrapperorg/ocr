@@ -28,24 +28,6 @@ def call_ocr(in_file, pdf_output):
     return proc.stdout, proc.stderr
 
 
-async def call_ocr_async(in_file, pdf_output):
-    # sub process is here, and here is where the exception happens.
-    # TODO: when --sidecar is provided and the pdf already has text,
-    # the cmd skips all pages with text
-    cmd_args = CMD_ARGS
-    ocrmypdf_args = [OCRMYPDF, *cmd_args, in_file, pdf_output]
-    proc = await asyncio.create_subprocess_exec(
-        *ocrmypdf_args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-    )
-    stdout, stderr = await proc.communicate()
-    if proc.returncode != 0:
-        LOGGER.error(stderr)
-        raise Exception(stderr)
-    LOGGER.debug(stdout.decode())
-    LOGGER.debug(stderr.decode())
-    return proc.stdout, proc.stderr
-
-
 def extract_ocrized_text(pdf_file, txt_output_file):
     text = ""
     with fitz.open(pdf_file) as pdf_f:

@@ -1,8 +1,8 @@
 #/bin/bash
 git pull && \
-docker compose -f docker-compose_release.yml pull && \
-docker compose -f docker-compose_release.yml build && \
-docker compose -f docker-compose_release.yml up -d && \
+docker compose pull && \
+docker compose build && \
+docker compose up -d && \
 echo "Done!"
 #sleep 5 
 #&& \

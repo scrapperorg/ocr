@@ -3,6 +3,7 @@ import os
 from typing import Any, Dict, Union
 
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import BackgroundTasks
 from fastapi.responses import FileResponse
 from starlette.middleware.cors import CORSMiddleware
 
@@ -17,12 +18,12 @@ CONTEXT: Dict[str, Dict[str, Any]] = {}
 
 tags_metadata = [
     {
-        "name": "ocr_simple",
-        "description": "Perform OCR on the PDF and return the PDF result. No jobs involved. Operation is blocking.",
+        "name": "test_ocr",
+        "description": "[To be deprecated]. Perform OCR on the PDF and return the PDF result. No jobs involved. Operation is blocking.",
     },
     {
         "name": "ocr",
-        "description": "Currently operation is blocking, but that will change in the near future. Perform OCR on the PDF and return a job id. The job id has the pdf, text and other properties attached. Operation should be non-blocking :)",
+        "description": "Currently operation is blocking. Perform OCR on a given PDF and job id. The job id has the pdf, text and other properties attached.",
     },
     {
         "name": "status",
@@ -56,31 +57,39 @@ app.add_middleware(
 # Set up the routes
 
 
-@app.post("/ocr_simple", tags=["ocr_simple"])
+@app.post("/test_ocr", tags=["test_ocr"])
 async def ocr_simple(file: UploadFile = File(...)):
     """Perform OCR on the PDF and render the result"""
     return ocr_controller.ocr_simple(file)
 
 
-async def do_work(job_id: str, file):
+def do_work(job_id: str, file):
     (
         CONTEXT[job_id][JobSpec.PDF_PATH],
         CONTEXT[job_id][JobSpec.TEXT_PATH],
         CONTEXT[job_id][JobSpec.ANALYZED_PDF_PATH],
-    ) = await ocr_controller.run_ocr(job_id, file)
+    ) = ocr_controller.run_ocr(job_id, file)
     CONTEXT[job_id][JobSpec.STATUS] = Status.COMPLETE
 
 
-@app.post("/ocr", tags=["ocr"])
-async def ocr(
+@app.post("/ocr_b", tags=["ocr"])
+def ocr_b(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    job_id: Union[str, None] = Header(default=None, convert_underscores=False),
+    job_id: Union[str, None] = Header(default=None, convert_underscores=False)
 ):
-    # job_id = str(uuid.uuid4().hex)
     CONTEXT[job_id] = {JobSpec.STATUS: Status.PROCESSING}
-    # Run OCR on the file asynchronously
-    # asyncio.run_coroutine_threadsafe(do_work(job_id, file), loop=asyncio.get_running_loop())
-    await do_work(job_id, file)
+    background_tasks.add_task(do_work, job_id, file)
+    return {JobSpec.ID: job_id}
+
+
+@app.post("/ocr", tags=["ocr"])
+def ocr(
+    file: UploadFile = File(...),
+    job_id: Union[str, None] = Header(default=None, convert_underscores=False)
+):
+    CONTEXT[job_id] = {JobSpec.STATUS: Status.PROCESSING}
+    do_work(job_id, file)
     return {JobSpec.ID: job_id}
 
 
@@ -142,8 +151,3 @@ async def quality(job_id):
 @app.get("/")
 async def root():
     return {"message": "Amazing software 𓀃"}
-
-
-# Start the server
-# if __name__ == '__main__':
-#    uvicorn.run(app, host='0.0.0.0', port=8080)

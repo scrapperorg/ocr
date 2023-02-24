@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
     ocr:
-        build:
-            context: .
-            dockerfile: ./Dockerfile
+        image: readable/ocr:main
         privileged: false
         environment:
             - OCR_DONE_WEBHOOK="http://localhost:8081/ocr_done"
@@ -14,4 +12,8 @@ services:
         ports:
             - "8080:8080"
         command: bash "./scripts/start-dev.sh"
-
+        deploy:
+          resources:
+            limits:
+              cpus: '0.50'
+              memory: 50M

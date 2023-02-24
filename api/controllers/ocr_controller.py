@@ -22,16 +22,13 @@ def call_webhook(job_id: str):
     LOGGER.info(f"Webhook response {response.text}")
 
 
-async def run_ocr(job_id: str, file: UploadFile = File(...)) -> FileResponse:
-    # TODO: Fix async calls
+def run_ocr(job_id: str, file: UploadFile = File(...)) -> FileResponse:
     try:
         work_folder = Path(mkdtemp(prefix="ocrservice.io."))
-        # pdf_input = await upload_async(file, work_folder)
         pdf_input = upload(file, work_folder)
         pdf_output = make_download_file_path(pdf_input)
         analyzed_pdf_output = f"{pdf_output}-highlight.pdf"
         txt_output = f"{pdf_output}.txt"
-        # await ocr_service.call_ocr_async(pdf_input, pdf_output, txt_output)
         LOGGER.info(f"Doing OCR for {job_id}")
         ocr_service.call_ocr(pdf_input, pdf_output)
         ocr_service.extract_ocrized_text(pdf_output, txt_output)
