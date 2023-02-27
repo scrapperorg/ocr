@@ -6,32 +6,35 @@
 
 ```bash
 # start services
-docker compose -f docker-compose_release.yml up -d 
+docker compose up -d 
 # close services
-docker compose -f docker-compose_release.yml down 
+docker compose down 
 ```
 
 ### Building it from scratch
 
 ```bash
+# either via docker build
+docker build -t readable/ocr:main -f ./Dockerfile .
+
+# or via docker compose
 # build services
-docker compose build 
+docker compose -f docker-compose_dev.yml build 
 
 # run services
-docker compose up -d 
+docker compose -f docker-compose_dev.yml up -d 
 
 # stop services
-docker compose down
+docker compose -f docker-compose_dev.yml down
 
 # run tests
-docker compose exec ocr bash -c "./scripts/run_tests.sh"
+docker compose -f docker-compose_dev.yml exec ocr bash -c "./scripts/run_tests.sh"
 ```
 
 
 
-## Running locally
-This code is not yet ready to be deployed in production.
-
+## Running locally on the host os
+The following steps are for an ubuntu system.
 
 ### Create virtual env
 ```bash 

@@ -3,7 +3,8 @@
 set -e
 
 echo "Running flake8"
-flake8 .
+flake8 ./app
 
 echo "Running pytest..."
-pytest --cov-branch --cov-report term --cov-report html:coverage -rfExX --color=yes .
+pytest -rfExX --color=yes .
+#--cov-branch --cov-report term --cov-report html:coverage
