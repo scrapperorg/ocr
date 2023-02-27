@@ -30,7 +30,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ocr:worker
 
 
   test:
