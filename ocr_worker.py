@@ -177,5 +177,5 @@ if __name__ == '__main__':
             message = "Something went wrong."
             LOGGER.exception(message)
             message += str(e)
-            time.sleep(2)
+            time.sleep(SLEEP_TIME)
             update_document(job_id, input_status, message=message)
