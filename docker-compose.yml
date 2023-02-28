@@ -12,7 +12,6 @@ services:
             - SLEEP_TIME=10
         volumes:
             - .:/app
-            - /opt/storage:/opt/storage
         tty: true
         ports:
             - "8080:8080"
