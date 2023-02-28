@@ -34,7 +34,7 @@ from tenacity import before_log, retry, stop_after_attempt
 WORKER_ID = os.environ.get("WORKER_ID", 1)
 API_URL = os.environ.get("API_URL", "http://3.229.101.152:8081")
 OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "nlp/documents/analysis")
-SLEEP_TIME = os.environ.get("SLEEP_TIME", 10)
+SLEEP_TIME = 10# int(os.environ.get("SLEEP_TIME", 10))
 
 
 LOG_CONFIG = f"Worker{WORKER_ID}: " + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
