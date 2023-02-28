@@ -2,18 +2,18 @@ version: '3.8'
 
 services:
     ocr:
-        image: readable/ocr:worker
+        image: readable/ocr:main
         privileged: false
         environment:
             - OCR_DONE_WEBHOOK="http://localhost:8081/ocr_done"
-            - WORKER_ID=1
-            - API_URL=""
-            - OUTPUT_PATH=""
-            - SLEEP_TIME=10
         volumes:
             - .:/app
         tty: true
         ports:
             - "8080:8080"
-        command: python ocr_worker.py
-       
+        command: bash "./scripts/start-dev.sh"
+        deploy:
+          resources:
+            limits:
+              cpus: '0.50'
+              memory: 50M
