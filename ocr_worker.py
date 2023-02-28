@@ -53,6 +53,14 @@ def assert_path_exists(path):
     if not os.path.exists(path):
         raise ValueError(f"File path {path} does not exist.")
 
+
+def safe_make_dirs(directory):
+    if not os.path.exists(directory):
+        LOGGER.info(f"Making directory {directory}")
+        os.makedirs(directory)
+
+
+safe_make_dirs(OUTPUT_PATH)
 assert_path_exists(OUTPUT_PATH)
 
 
@@ -111,7 +119,7 @@ def process(document):
     job_id = document["id"]
     js_content = {ResponseField.WORKER: WORKER_ID,
                   ResponseField.JOB_ID: job_id,
-                  ResponseField.IN_STATUS: input_status}
+                  ResponseField.IN_STATUS: document['status']}
     input_file = document["storagePath"]
     js_content[ResponseField.IN] = input_file
     assert_path_exists(input_file)

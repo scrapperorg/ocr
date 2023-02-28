@@ -43,17 +43,6 @@ RUN \
   && cd .. \
   && rm -rf jbig2
 
-RUN mkdir -p /app
-COPY . /app
-WORKDIR /app
-
-RUN git clone  https://github.com/ocrmypdf/OCRmyPDF
-WORKDIR /app/OCRmyPDF
-RUN pip3 install --no-cache-dir .[test,webservice,watcher]
-
-WORKDIR /app
-RUN pip3 install -r test_requirements.txt
-
 
 FROM base
 
@@ -79,9 +68,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   unpaper \
   && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
 
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
+RUN apt-get update && apt-get install -y git
+
+# RUN useradd -ms /bin/bash worker
+# USER worker
+# WORKDIR /home/worker
+
+RUN mkdir -p /app
+COPY . /app
+WORKDIR /app
+
+RUN git clone  https://github.com/ocrmypdf/OCRmyPDF
+WORKDIR /app/OCRmyPDF
+RUN pip3 install --no-cache-dir .[test,webservice,watcher]
+
+WORKDIR /app
+RUN pip3 install -r requirements.txt
+RUN pip3 install -r test_requirements.txt
