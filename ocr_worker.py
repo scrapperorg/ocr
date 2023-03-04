@@ -33,8 +33,9 @@ from tenacity import before_log, retry, stop_after_attempt
 
 WORKER_ID = os.environ.get("WORKER_ID", 1)
 API_URL = os.environ.get("API_URL", "http://3.229.101.152:8081")
+API_ENDPOINT = os.environ.get("API_ENDPOINT", API_URL)
 OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "nlp/documents/analysis")
-SLEEP_TIME = 10# int(os.environ.get("SLEEP_TIME", 10))
+SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 
 
 LOG_CONFIG = f"Worker{WORKER_ID}: " + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
@@ -71,15 +72,19 @@ class ResponseField:
     IN_STATUS = 'input_status'
     OUT = "analysis_file"
     OCR = "ocr_file"
-    ANALYSIS = "highligh_file"
-    TEXT = "text_file"
+    ANALYSIS = "highlight_file"
+    TEXT_FILE = "text_file"
+    TEXT = "text"
     QUALITY = "ocr_quality"
+    PART = "part"
+    TOTAL = "total_parts"
+
 
 
 
 #@retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
 def get_next_document(not_found=False):
-    endpoint = os.path.join(API_URL, "next-document")
+    endpoint = os.path.join(API_ENDPOINT, "next-document")
     if not_found:
         endpoint = endpoint + "?forceStatus=not_found"
     LOGGER.info(f"Calling endpoint {endpoint}")
@@ -93,13 +98,16 @@ def get_next_document_mock():
     retval = json.loads("""{
     "id":	"3b4d634d-8616-4809-9c68-2e2c923d1e1a",
     "storagePath":	"nlp/documents/3b4d634d-8616-4809-9c68-2e2c923d1e1a.pdf",
-    "status":	"downloaded"
+    "status":	"downloaded",
+    "force": true,
+    "return_text": true
     }""")
     return retval
 
+
 #@retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
 def get_document(id: str):
-    endpoint = os.path.join(API_URL, "document", id)
+    endpoint = os.path.join(API_ENDPOINT, "document", id)
     LOGGER.info(f"Calling endpoint {endpoint}")
     response = requests.get(endpoint)
     LOGGER.info(f"Endpoint response {response.text}")
@@ -107,41 +115,59 @@ def get_document(id: str):
 
 
 #@retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
-def update_document(id, status, message=""):
-    endpoint = os.path.join(API_URL, "ocr_updates")
-    body = {"id": id, "status": status, "message": message}
+def update_document(id, status, message="", analysis={}):
+    endpoint = os.path.join(API_ENDPOINT, "ocr-updates")
+    body = {ResponseField.WORKER: WORKER_ID,
+            "id": id,
+            "status": status,
+            "message": message,
+            "analysis": analysis
+           }
     LOGGER.info(f"Calling endpoint {endpoint}")
     response = requests.post(endpoint, json=body)
     LOGGER.info(f"Endpoint response {response.text}")
 
 
+def update_document_mock(id, status, message="", analysis={}):
+    endpoint = os.path.join(API_ENDPOINT, "ocr-updates")
+    body = {ResponseField.WORKER: WORKER_ID,
+            "id": id,
+            "status": status,
+            "message": message,
+            "analysis": analysis
+           }
+    LOGGER.info(f"Calling endpoint {endpoint} with body {body}")
+
+
 def process(document):
-    job_id = document["id"]
-    js_content = {ResponseField.WORKER: WORKER_ID,
-                  ResponseField.JOB_ID: job_id,
-                  ResponseField.IN_STATUS: document['status']}
+    js_content = {ResponseField.IN_STATUS: document['status']}
+    return_text = document.get("return_text", True)
     input_file = document["storagePath"]
     js_content[ResponseField.IN] = input_file
+    js_content[ResponseField.PART] = 1
+    js_content[ResponseField.TOTAL] = 1
     assert_path_exists(input_file)
     ocr_output = make_derived_file_name(input_file, new_path=OUTPUT_PATH, new_extension='pdf', new_suffix='ocr')
-    txt_output = make_derived_file_name(input_file, new_path=OUTPUT_PATH, new_extension='txt', new_suffix='ocr')
     anl_output = make_derived_file_name(input_file, new_path=OUTPUT_PATH, new_extension='pdf', new_suffix='highlight')
-    json_output = make_derived_file_name(input_file, new_path=OUTPUT_PATH, new_extension='json', new_suffix='analysis')
+    txt_output = make_derived_file_name(input_file, new_path=OUTPUT_PATH, new_extension='txt', new_suffix='ocr')
+    #json_output = make_derived_file_name(input_file, new_path=OUTPUT_PATH, new_extension='json', new_suffix='analysis')
     ocr_service.call_ocr(input_file, ocr_output)
     # TODO: call this instead of the cli 
     # ocr_service.run_ocr(input_file, ocr_output)
     assert_path_exists(ocr_output)
     js_content[ResponseField.OCR] = ocr_output
-    ocr_service.extract_ocrized_text(ocr_output, txt_output)
+    text = ocr_service.extract_ocrized_text(ocr_output, txt_output)
+    js_content[ResponseField.TEXT] = text
     assert_path_exists(txt_output)
-    js_content[ResponseField.TEXT] = txt_output
+    #js_content[ResponseField.TEXT_FILE] = txt_output
     js_content[ResponseField.QUALITY] = ocr_evaluation.estimate_quality(read_text_file(txt_output))
     doc_analysis.highlight_keywords(ocr_output, anl_output)
     assert_path_exists(anl_output)
     js_content[ResponseField.ANALYSIS] = anl_output
-    with open(json_output, 'w') as fout:
-        json.dump(js_content, fout)
-    SEEN.add(job_id)
+    #with open(json_output, 'w') as fout:
+    #    json.dump(js_content, fout)
+    SEEN.add(document["id"])
+    yield js_content
     
 
 if __name__ == '__main__':
@@ -156,8 +182,8 @@ if __name__ == '__main__':
                     (input_status in {APIStatus.OCR_DONE, APIStatus.LOCKED} and redo):
                     update_document(job_id, APIStatus.LOCKED, message="Processing...")
                     update_document(job_id, APIStatus.OCR_INPROGRESS, message="Doing OCR...")
-                    process(document)
-                    update_document(job_id, APIStatus.OCR_DONE)
+                    for analysis in process(document):
+                        update_document(job_id, APIStatus.OCR_DONE, analysis=analysis)
                 else:
                     message = f"Status of {document['id']} is {input_status}. Use 'force: true' in the payload to redo the processing. Sleeping for {SLEEP_TIME} seconds..."
                     LOGGER.info(message)
@@ -174,8 +200,9 @@ if __name__ == '__main__':
                             f" Sleeping for {SLEEP_TIME} seconds...")
                 time.sleep(SLEEP_TIME)
         except Exception as e:
-            message = "Something went wrong."
+            message = "Something went wrong. "
             LOGGER.exception(message)
             message += str(e)
-            time.sleep(SLEEP_TIME)
             update_document(job_id, input_status, message=message)
+            time.sleep(SLEEP_TIME)
+            

@@ -40,10 +40,20 @@ def call_ocr(in_file, pdf_output):
     return proc.stdout, proc.stderr
 
 
-def extract_ocrized_text(pdf_file, txt_output_file):
+def get_ocrized_text(pdf_file):
     text = ""
     with fitz.open(pdf_file) as pdf_f:
         for p in pdf_f.pages():
             text += p.get_text()
+    return text
+
+
+def extract_ocrized_text(pdf_file, txt_output_file):
+    text = get_ocrized_text(pdf_file)
+    dump_text(text, txt_output_file)
+    return text
+
+
+def dump_text(text, txt_output_file):
     with open(txt_output_file, "w", encoding="utf-8") as txt_f:
         txt_f.write(text)
