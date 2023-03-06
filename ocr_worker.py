@@ -73,6 +73,7 @@ class ResponseField:
     OUT = "analysis_file"
     OCR = "ocr_file"
     ANALYSIS = "highlight_file"
+    ANALYSIS_META = "highlight_metadata"
     TEXT_FILE = "text_file"
     TEXT = "text"
     QUALITY = "ocr_quality"
@@ -161,9 +162,10 @@ def process(document):
     assert_path_exists(txt_output)
     #js_content[ResponseField.TEXT_FILE] = txt_output
     js_content[ResponseField.QUALITY] = ocr_evaluation.estimate_quality(read_text_file(txt_output))
-    doc_analysis.highlight_keywords(ocr_output, anl_output)
+    highlight_meta_js = doc_analysis.highlight_keywords(ocr_output, anl_output)
     assert_path_exists(anl_output)
     js_content[ResponseField.ANALYSIS] = anl_output
+    js_content[ResponseField.ANALYSIS_META] = highligh_meta_js
     #with open(json_output, 'w') as fout:
     #    json.dump(js_content, fout)
     SEEN.add(document["id"])
