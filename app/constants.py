@@ -16,6 +16,26 @@ class Status:
     WB_FAILED = "complete, but webhook_failed"
 
 
+class APIStatus:
+    DOWNLOADED = "downloaded"
+    LOCKED = "locked"
+    OCR_INPROGRESS = "ocr_in_progress"
+    OCR_DONE = "ocr_done"
+
+    @staticmethod
+    def statuses() -> str:
+        return str(
+            set(
+                [
+                    APIStatus.DOWNLOADED,
+                    APIStatus.LOCKED,
+                    APIStatus.OCR_DONE,
+                    APIStatus.OCR_INPROGRESS,
+                ]
+            )
+        )
+
+
 class JobSpec:
     PDF_PATH = "pdf_path"
     TEXT_PATH = "text_path"

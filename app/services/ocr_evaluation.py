@@ -3,7 +3,7 @@ import re
 
 import nltk
 
-from api.utils.file_util import read_text_file, remove_diacritics
+from app.utils.file_util import read_text_file, remove_diacritics
 from nlp.resources.constants import RO_CHARS, VOCAB_PATH, WORDLIST_PATH
 
 LOGGER = logging.getLogger(__name__)
@@ -83,4 +83,4 @@ def estimate_quality(text):
     # TODO: also leverage already implemented "confidence" score from Tesseract
     if not validate_text(text):
         return 100
-    return (cer(text) + wer(text)) / 2 * 100
+    return round((cer(text) + wer(text)) / 2 * 100, 2)

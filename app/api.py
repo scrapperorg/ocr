@@ -6,8 +6,8 @@ from fastapi import BackgroundTasks, FastAPI, File, Header, HTTPException, Uploa
 from fastapi.responses import FileResponse
 from starlette.middleware.cors import CORSMiddleware
 
-from api.config import settings
-from api.constants import JobSpec, Status
+from app.config import settings
+from app.constants import JobSpec, Status
 
 from .controllers import ocr_controller
 

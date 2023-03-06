@@ -2,7 +2,7 @@
 
 set -e
 
-DEFAULT_MODULE_NAME=api.api
+DEFAULT_MODULE_NAME=app.api
 
 if [[ -z "${OCR_DONE_WEBHOOK}" ]]; then
   OCR_DONE_WEBHOOK="missing value"

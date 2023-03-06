@@ -3,7 +3,7 @@ from io import BytesIO
 
 import fitz
 
-from api.utils.file_util import read_text_file
+from app.utils.file_util import read_text_file
 from nlp.resources.constants import KEYWORDS_PATH
 
 LOGGER = logging.getLogger(__name__)

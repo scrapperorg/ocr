@@ -30,7 +30,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ocr:worker
 
 
   test:
@@ -43,6 +43,6 @@ jobs:
       - name: Running tests
         uses: cloudposse/github-action-docker-compose-test-run@main
         with:
-          file: docker-compose_release.yml
+          file: docker-compose.yml
           service: ocr
           command: scripts/run_tests.sh
