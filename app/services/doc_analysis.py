@@ -2,7 +2,7 @@ import logging
 from io import BytesIO
 
 import fitz
-
+from ocr_evaluation import normalize_word
 from app.utils.file_util import read_text_file
 from nlp.resources.constants import KEYWORDS_PATH
 
@@ -17,14 +17,52 @@ def load_keywords():
 
 KEYWORDS = load_keywords()
 
+def highlight_keywords_semantic(input_pdf_path, output_pdf_path):
+    highlight_meta_results = []
+    with fitz.open(input_pdf_path) as pdfDoc:
+        for pg in range(pdfDoc.page_count):
+            page = pdfDoc[pg]
+            word_coordinates = page.get_text_words()
+            word_coordinates_index = {}
+            for coord in word_coordinates:
+                word = coord[4]
+                stem = normalize_word(word)
+                if word not in word_coordinates_index:
+                    word_coordinates_index[stem] = []
+                    word_coordinates_index[stem].append(coord[1:4]) # rectangle coordinates indexed by stem
+            for keyword in KEYWORDS:
+                # TODO: currently able to match based on individual stems
+                # TODO: extend to multiword expressions
+                # TODO: use spacy to match based on lemmas instead of stems
+                keyword_stem = normalize_word(keyword_stem)
+                if keyword_stem in word_coordinates_index:
+                    highlight_meta_result = {"keyword": keyword, "occs": []} # TODO: parametrize format
+                    for area in word_coordinates_index[keyword_stem]:
+                        location_js = {"page": pg, "location": 
+                            {
+                                "x1": area[1], "x2": area[2], "y1": area[0], "y2": area[4]}
+                            }
+                        highlight_meta_result["occs"].append(location_js)
+                    highlight_meta_results.append(highlight_meta_result)
 
-def highlight_keywords(input_pdf_path, output_pdf_path):
+                    highlight = page.add_highlight_annot(fitz.Rect(area[0:4]))
+                    highlight.update()
+        output_buffer = BytesIO()
+        pdfDoc.save(output_buffer)
+
+    with open(output_pdf_path, mode="wb") as f:
+        f.write(output_buffer.getbuffer())
+
+    return highlight_meta_results
+    # TODO: handle errors
+
+
+def highlight_keywords_strlev(input_pdf_path, output_pdf_path):
     highlight_meta_results = []
     with fitz.open(input_pdf_path) as pdfDoc:
         for pg in range(pdfDoc.page_count):
             page = pdfDoc[pg]
             for keyword in KEYWORDS:
-                # TODO: improved search, at token level, over normalized words, etc
                 matching_val_areas = page.search_for(keyword)
                 highlight_meta_result = {"keyword": keyword, "occs": []} # TODO: parametrize format
                 for area in matching_val_areas:
@@ -45,3 +83,6 @@ def highlight_keywords(input_pdf_path, output_pdf_path):
 
     return highlight_meta_results
     # TODO: handle errors
+
+def highlight_keywords(input_pdf_path, output_pdf_path):
+    return highlight_keywords_strlev(input_pdf_path, output_pdf_path)
