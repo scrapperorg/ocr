@@ -58,21 +58,20 @@ def highlight_keywords_semantic(input_pdf_path, output_pdf_path):
 
 
 def highlight_keywords_strlev(input_pdf_path, output_pdf_path):
-    highlight_meta_results = []
+    highlight_meta_results = {}
     with fitz.open(input_pdf_path) as pdfDoc:
         for pg in range(pdfDoc.page_count):
             page = pdfDoc[pg]
             for keyword in KEYWORDS:
+                highlight_meta_results[keyword] = []
                 matching_val_areas = page.search_for(keyword)
-                highlight_meta_result = {"keyword": keyword, "occs": []} # TODO: parametrize format
                 for area in matching_val_areas:
-                    location_js = {"page": pg, "location": 
+                    location_js = {"page": pg+1, "location": 
                         {
                             "x1": area.x0, "x2": area.x1, "y1": area.y0, "y2": area.y1}
                         }
-                    highlight_meta_result["occs"].append(location_js)
-                if matching_val_areas:
-                    highlight_meta_results.append(highlight_meta_result)
+                    highlight_meta_results[keyword].append(location_js)
+    
                 highlight = page.add_highlight_annot(matching_val_areas)
                 highlight.update()
         output_buffer = BytesIO()
@@ -81,7 +80,14 @@ def highlight_keywords_strlev(input_pdf_path, output_pdf_path):
     with open(output_pdf_path, mode="wb") as f:
         f.write(output_buffer.getbuffer())
 
-    return highlight_meta_results
+    highlight_meta_js = []
+    for k in highlight_meta_results:
+        highlight_meta_js.append({
+            "keyword": k,
+            "occs": highlight_meta_results[k],
+            "total_occs": len(highlight_meta_results[k])
+            })
+    return highlight_meta_js
     # TODO: handle errors
 
 def highlight_keywords(input_pdf_path, output_pdf_path):
