@@ -39,7 +39,7 @@ def highlight_keywords_semantic(input_pdf_path, output_pdf_path):
                 # TODO: currently able to match based on individual stems
                 # TODO: extend to multiword expressions
                 # TODO: use spacy to match based on lemmas instead of stems
-                keyword_stem = normalize_word(keyword_stem)
+                keyword_stem = normalize_word(keyword)
                 if keyword_stem in word_coordinates_index:
                     highlight_meta_result = {
                         "keyword": keyword,
