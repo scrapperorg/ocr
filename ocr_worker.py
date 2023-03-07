@@ -165,7 +165,7 @@ def process(document):
     highlight_meta_js = doc_analysis.highlight_keywords(ocr_output, anl_output)
     assert_path_exists(anl_output)
     js_content[ResponseField.ANALYSIS] = anl_output
-    js_content[ResponseField.ANALYSIS_META] = highligh_meta_js
+    js_content[ResponseField.ANALYSIS_META] = highlight_meta_js
     #with open(json_output, 'w') as fout:
     #    json.dump(js_content, fout)
     SEEN.add(document["id"])

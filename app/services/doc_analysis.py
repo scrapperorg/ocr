@@ -18,6 +18,7 @@ def load_keywords():
 KEYWORDS = load_keywords()
 
 def highlight_keywords_semantic(input_pdf_path, output_pdf_path):
+    # Under construction
     highlight_meta_results = []
     with fitz.open(input_pdf_path) as pdfDoc:
         for pg in range(pdfDoc.page_count):
@@ -63,13 +64,15 @@ def highlight_keywords_strlev(input_pdf_path, output_pdf_path):
         for pg in range(pdfDoc.page_count):
             page = pdfDoc[pg]
             for keyword in KEYWORDS:
-                highlight_meta_results[keyword] = []
                 matching_val_areas = page.search_for(keyword)
                 for area in matching_val_areas:
-                    location_js = {"page": pg+1, "location": 
+                    # TODO: handle multiword expressions to only return one occurrence (first word only)
+                    location_js = {"page": pg, "location": 
                         {
                             "x1": area.x0, "x2": area.x1, "y1": area.y0, "y2": area.y1}
                         }
+                    if keyword not in highlight_meta_results:
+                        highlight_meta_results[keyword] = []
                     highlight_meta_results[keyword].append(location_js)
     
                 highlight = page.add_highlight_annot(matching_val_areas)
