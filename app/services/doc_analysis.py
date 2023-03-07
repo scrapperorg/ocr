@@ -2,7 +2,7 @@ import logging
 from io import BytesIO
 
 import fitz
-from ocr_evaluation import normalize_word
+from app.services.ocr_evaluation import normalize_word
 from app.utils.file_util import read_text_file
 from nlp.resources.constants import KEYWORDS_PATH
 
