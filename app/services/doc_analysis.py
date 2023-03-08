@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from io import BytesIO
 
 import fitz
@@ -71,7 +72,7 @@ def highlight_keywords_semantic(input_pdf_path, output_pdf_path):
 
 
 def highlight_keywords_strlev(input_pdf_path, output_pdf_path):
-    highlight_meta_results = {}
+    highlight_meta_results = defaultdict(list)
     with fitz.open(input_pdf_path) as pdfDoc:
         for pg in range(pdfDoc.page_count):
             page = pdfDoc[pg]
@@ -88,8 +89,6 @@ def highlight_keywords_strlev(input_pdf_path, output_pdf_path):
                             "y2": area.y1,
                         },
                     }
-                    if keyword not in highlight_meta_results:
-                        highlight_meta_results[keyword] = []
                     highlight_meta_results[keyword].append(location_js)
 
                 highlight = page.add_highlight_annot(matching_val_areas)

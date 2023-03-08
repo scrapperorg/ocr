@@ -72,7 +72,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y git curl
 
 RUN git clone  https://github.com/ocrmypdf/OCRmyPDF
 WORKDIR OCRmyPDF
@@ -82,6 +82,11 @@ RUN pip3 install --no-cache-dir .[test,webservice,watcher]
 # RUN useradd -ms /bin/bash worker
 # USER worker
 # WORKDIR /home/worker
+
+# RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+# ENV PATH="/root/.cargo/bin:${PATH}"
+# pytokenizations
+
 
 RUN mkdir -p /app
 COPY . /app

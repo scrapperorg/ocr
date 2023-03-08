@@ -26,10 +26,11 @@ def run_ocr(in_file, pdf_output):
 
 def call_ocr(in_file, pdf_output):
     ocrmypdf_args = [OCRMYPDF, "-v", *CMD_ARGS, in_file, pdf_output]
-
     proc = run(ocrmypdf_args, capture_output=True, encoding="utf-8")
     if proc.returncode != 0:
-        LOGGER.info("OCR failed, trying again with --output-type pdf")
+        LOGGER.info(
+            "Input file could not be converted to PDF/A and OCR must be done again..."
+        )
         ocrmypdf_args = [OCRMYPDF, *FAIL_SAFE_ARGS, *CMD_ARGS, in_file, pdf_output]
         proc = run(ocrmypdf_args, capture_output=True, encoding="utf-8")
         if proc.returncode != 0:
@@ -43,8 +44,17 @@ def call_ocr(in_file, pdf_output):
 def get_ocrized_text(pdf_file):
     text = ""
     with fitz.open(pdf_file) as pdf_f:
-        for p in pdf_f.pages():
-            text += p.get_text()
+        for page in pdf_f.pages():
+            text += page.get_text()
+    return text
+
+
+def get_ocrized_text_from_blocks(pdf_file):
+    text = ""
+    with fitz.open(pdf_file) as pdf_f:
+        for page in pdf_f.pages():
+            blocks = page.get_text(option="blocks", flags=fitz.TEXTFLAGS_SEARCH)
+            text += "\n".join([block[4].replace("\n", " ") for block in blocks]) + "\n"
     return text
 
 

@@ -21,6 +21,7 @@ class APIStatus:
     LOCKED = "locked"
     OCR_INPROGRESS = "ocr_in_progress"
     OCR_DONE = "ocr_done"
+    FAILED = "failed"
 
     @staticmethod
     def statuses() -> str:
