@@ -170,6 +170,7 @@ if MOCK == 'true':
 
 if __name__ == '__main__':
     while True:
+        job_id = 'job id not retrieved'
         try:
             document = get_next_document()
             job_id = document["id"]
