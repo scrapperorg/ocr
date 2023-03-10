@@ -204,6 +204,9 @@ if __name__ == '__main__':
             message = f"Something went wrong for job id '{job_id}'. "
             LOGGER.exception(message)
             message += str(e)
-            update_document(job_id, APIStatus.FAILED, message=message)
+            try:
+                update_document(job_id, APIStatus.FAILED, message=message)
+            except Exception as e:
+                LOGGER.exception('Could not POST documents updates.')
             time.sleep(SLEEP_TIME)
             
