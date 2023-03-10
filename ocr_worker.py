@@ -108,6 +108,7 @@ def get_document(id: str):
     LOGGER.info(f"Calling endpoint {endpoint}")
     response = requests.get(endpoint)
     LOGGER.info(f"Endpoint response {response.text}")
+    response.raise_for_status()
     return response.json()
 
 
@@ -170,7 +171,7 @@ if MOCK == 'true':
 
 if __name__ == '__main__':
     while True:
-        job_id = 'job id not retrieved'
+        job_id = 'not retrieved'
         try:
             document = get_next_document()
             job_id = document["id"]
@@ -200,7 +201,7 @@ if __name__ == '__main__':
                             f" Sleeping for {SLEEP_TIME} seconds...")
                 time.sleep(SLEEP_TIME)
         except Exception as e:
-            message = f"Something went wrong for {job_id}. "
+            message = f"Something went wrong for job id '{job_id}'. "
             LOGGER.exception(message)
             message += str(e)
             update_document(job_id, APIStatus.FAILED, message=message)
