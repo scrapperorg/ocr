@@ -11,7 +11,7 @@ retval = json.loads("""{
 GET http://3.229.101.152:8081/document/3b4d634d-8616-4809-9c68-2e2c923d1e1a
 Returneaza aceleasi info ca next-document doar ca aici sunt cerute specifice pentru un document, folositor daca vrei sa citesti status-ul curent la un momentdat
 
-POST http://3.229.101.152:8081/ocr_updates
+POST http://3.229.101.152:8081/ocr-updates
 Body: { id, status } unde id este id-ul documentului si status este una din valorile astea: 'downloaded', 'locked', 'ocr_in_progress', 'ocr_done'
 
 '''

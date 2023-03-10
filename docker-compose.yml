@@ -7,7 +7,7 @@ services:
         privileged: false
         environment:
             - WORKER_ID=1
-            - API_URL=http://3.229.101.152:8081
+            - API_ENDPOINT=http://3.229.101.152:8081
             - OUTPUT_PATH=/opt/storage/analysis
             - SLEEP_TIME=10
         volumes:
