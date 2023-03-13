@@ -4,7 +4,6 @@ import unicodedata
 import uuid
 from pathlib import Path
 
-import aiofiles
 from fastapi import UploadFile
 
 _filename_ascii_strip_re = re.compile(r"[^A-Za-z0-9_.-]")
@@ -27,12 +26,29 @@ def secure_filename(filename: str) -> str:
     return f"{filename}{extension}"
 
 
-def make_download_file_path(file_path: str) -> str:
+def make_download_file_path(file_path: str, suffix="ocr", new_extension=None) -> str:
     """Make the download file path"""
     filename = os.path.basename(file_path)
     work_folder = os.path.dirname(file_path)
     filename, extension = os.path.splitext(filename)
-    filename = f"{filename}_ocr{extension}"
+    if new_extension:
+        extension = new_extension
+    filename = f"{filename}_{suffix}{extension}"
+    return os.path.join(work_folder, filename)
+
+
+def make_derived_file_name(
+    file_path: str, new_path=None, new_suffix="ocr", new_extension=None
+) -> str:
+    """Make the download file path"""
+    filename = os.path.basename(file_path)
+    work_folder = os.path.dirname(file_path)
+    if new_path:
+        work_folder = new_path
+    filename, extension = os.path.splitext(filename)
+    if new_extension:
+        extension = new_extension
+    filename = f"{filename}_{new_suffix}.{extension}"
     return os.path.join(work_folder, filename)
 
 
@@ -43,16 +59,6 @@ def upload(file: UploadFile, work_folder: Path) -> str:
     with open(up_file, "wb") as fout:
         while contents := file.file.read(1024 * 1024):
             fout.write(contents)
-    return up_file
-
-
-async def upload_async(file: UploadFile, work_folder: Path) -> str:
-    """Upload the file to the work folder"""
-    secure_file_name = secure_filename(file.filename)
-    up_file = os.path.join(work_folder, secure_file_name)
-    with aiofiles.open(up_file, "wb") as fout:
-        while contents := await file.file.read(1024 * 1024):
-            await fout.write(contents)
     return up_file
 
 

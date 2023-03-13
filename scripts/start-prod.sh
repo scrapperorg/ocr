@@ -5,7 +5,7 @@ set -e
 echo "Not implmented yet."
 exit 1
 
-DEFAULT_MODULE_NAME=api.api
+DEFAULT_MODULE_NAME=api.ocr_api
 
 MODULE_NAME=${MODULE_NAME:-$DEFAULT_MODULE_NAME}
 VARIABLE_NAME=${VARIABLE_NAME:-app}

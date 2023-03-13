@@ -133,3 +133,6 @@ dmypy.json
 backup.dump
 backup.dump.gz
 .vscode
+
+# analysis 
+nlp/documents/analysis/

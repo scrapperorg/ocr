@@ -1,4 +1,4 @@
-from api.utils.file_util import secure_filename
+from app.utils.file_util import secure_filename
 
 
 def test_secure_filename():
