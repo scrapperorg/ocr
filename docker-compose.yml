@@ -5,15 +5,18 @@ services:
         platform: linux/x86_64
         image: readable/ocr:worker
         privileged: false
+        networks:
+            - backend
         environment:
             - WORKER_ID=1
-            - API_ENDPOINT=http://3.229.101.152:8081
+            - API_ENDPOINT=http://api:8081
             - OUTPUT_PATH=/opt/storage/analysis
             - SLEEP_TIME=10
         volumes:
             - /opt/storage:/opt/storage
         tty: true
         command: python3 ocr_worker.py
+
 volumes:
   ocr_data:
     driver: local
@@ -21,3 +24,8 @@ volumes:
       type: none
       device: /opt/storage
       o: bind
+
+networks:
+  backend:
+    name: api_default
+    external: true
