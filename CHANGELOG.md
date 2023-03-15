@@ -2,6 +2,13 @@
 Adding notes to what is being changed from time to time
 
 
+## [Unreleased] 15.03.2023
+### Added
+- highlight keywords
+### Changed
+- pipeline and docker-compose to use ocr:latest
+
+
 ## [Unreleased] 08.03.2023
 ### Added
 - example file to run tests

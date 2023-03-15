@@ -23,8 +23,8 @@ jobs:
         run: |
             echo ${GITHUB_HEAD_REF-${GITHUB_REF##*/}}
             echo ${GITHUB_REF##*/}
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ocr:main && \
-            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/ocr:main ${{ secrets.DOCKERHUB_USERNAME }}/ocr:previous && \
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ocr:latest && \
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/ocr:latest ${{ secrets.DOCKERHUB_USERNAME }}/ocr:previous && \
             docker push ${{ secrets.DOCKERHUB_USERNAME }}/ocr:previous
   
       - name: Build and push
