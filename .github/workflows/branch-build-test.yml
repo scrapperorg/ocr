@@ -21,9 +21,9 @@ jobs:
   
       - name: Extract branch name
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_HEAD_REF-${GITHUB_REF##*/}})"
         id: extract_branch
-  
+
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -43,6 +43,6 @@ jobs:
       - name: Running tests
         uses: cloudposse/github-action-docker-compose-test-run@main
         with:
-          file: docker-compose_release.yml
+          file: docker-compose.yml
           service: ocr
           command: scripts/run_tests.sh

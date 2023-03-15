@@ -2,18 +2,30 @@ version: '3.8'
 
 services:
     ocr:
-        image: readable/ocr:main
+        platform: linux/x86_64
+        image: readable/ocr:worker
         privileged: false
+        networks:
+            - backend
         environment:
-            - OCR_DONE_WEBHOOK="http://localhost:8081/ocr_done"
+            - WORKER_ID=1
+            - API_ENDPOINT=http://api:8081
+            - OUTPUT_PATH=/opt/storage/analysis
+            - SLEEP_TIME=10
         volumes:
-            - .:/app
+            - /opt/storage:/opt/storage
         tty: true
-        ports:
-            - "8080:8080"
-        command: bash "./scripts/start-dev.sh"
-        deploy:
-          resources:
-            limits:
-              cpus: '0.50'
-              memory: 50M
+        command: python3 ocr_worker.py
+
+volumes:
+  ocr_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /opt/storage
+      o: bind
+
+networks:
+  backend:
+    name: api_default
+    #external: true
