@@ -58,12 +58,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libsm6 libxext6 libxrender-dev \
   pngquant \
   tesseract-ocr \
-  tesseract-ocr-chi-sim \
-  tesseract-ocr-deu \
-  tesseract-ocr-eng \
-  tesseract-ocr-fra \
-  tesseract-ocr-por \
-  tesseract-ocr-spa \
   tesseract-ocr-ron \
   unpaper \
   && rm -rf /var/lib/apt/lists/*
@@ -94,4 +88,8 @@ WORKDIR /app
 
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r test_requirements.txt
+
+RUN echo "Downloading models..."
 RUN ./scripts/pull_models.sh
+RUN echo "Setting tesseract model..."
+RUN cp nlp/resources/tessdata/* /usr/share/tesseract-ocr/5/tessdata/

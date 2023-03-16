@@ -3,10 +3,23 @@ from subprocess import run
 
 import fitz
 from ocrmypdf.__main__ import run as run_ocrmypdf
+from ocrmypdf._exec import tesseract
+
+LEGAL_LANG = "ro_legal"
+BACK_LANG = "ron"
 
 LOGGER = logging.getLogger(__name__)
 
-CMD_ARGS = ["--skip-text", "-l", "ron"]
+
+def get_language():
+    tess_languages = tesseract.get_languages()
+    return LEGAL_LANG if LEGAL_LANG in tess_languages else BACK_LANG
+
+
+LANGUAGE = get_language()
+LOGGER.info(f"Using language {LANGUAGE} for OCR")
+
+CMD_ARGS = ["--skip-text", "-l", LANGUAGE]
 # some PDF files might not be convertible to PDF/A
 # then we try again with --output-type pdf
 FAIL_SAFE_ARGS = ["--output-type", "pdf"]

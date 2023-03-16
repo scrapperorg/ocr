@@ -12,6 +12,8 @@ else
 fi
 
 cd $OUTPUT_DIR && \
+rm -rf tessdata* && \
+rm -rf ro_vocabulary* && \
 wget https://github.com/scrapperorg/nlp-resources/files/10898263/tessdata.tar.gz && \
 tar -xvf tessdata.tar.gz && \
 wget https://github.com/scrapperorg/nlp-resources/files/10898245/ro_vocabulary.tar.gz && \
