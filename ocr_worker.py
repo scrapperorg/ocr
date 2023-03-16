@@ -96,8 +96,7 @@ def get_next_document_mock():
     retval = json.loads("""{
     "id":	"3b4d634d-8616-4809-9c68-2e2c923d1e1a",
     "storagePath":	"nlp/documents/3b4d634d-8616-4809-9c68-2e2c923d1e1a.pdf",
-    "status":	"downloaded",
-    "force": true
+    "status":	"downloaded"
     }""")
     return retval
 
@@ -113,7 +112,7 @@ def get_document(id: str):
 
 
 #@retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
-def update_document(id, status, message="", analysis={}):
+def update_document(id, status, message="", analysis={}, raise_failure=True):
     endpoint = os.path.join(API_ENDPOINT, "ocr-updates")
     body = {ResponseField.WORKER: WORKER_ID,
             "id": id,
@@ -124,7 +123,8 @@ def update_document(id, status, message="", analysis={}):
     LOGGER.info(f"Calling endpoint {endpoint}")
     response = requests.post(endpoint, json=body)
     LOGGER.info(f"Endpoint response {response.text}")
-    response.raise_for_status()
+    if raise_failure:
+        response.raise_for_status()
 
 
 def update_document_mock(id, status, message="", analysis={}):
@@ -171,26 +171,22 @@ if MOCK == 'true':
 
 if __name__ == '__main__':
     while True:
-        job_id = 'not retrieved'
+        job_id = ""
         try:
             document = get_next_document()
-            job_id = document["id"]
-            redo = document.get("force", False)
             input_status = document['status']
-            if input_status in {APIStatus.DOWNLOADED, APIStatus.OCR_DONE}:
-                if input_status in APIStatus.DOWNLOADED or \
-                    (input_status in {APIStatus.OCR_DONE} and redo):
-                    update_document(job_id, APIStatus.LOCKED, message="Processing...")
-                    assert_valid_document(document)
-                    update_document(job_id, APIStatus.OCR_INPROGRESS, message="Doing OCR...")
-                    analysis = process(document)
-                    update_document(job_id, APIStatus.OCR_DONE, analysis=analysis)
-                else:
-                    message = f"Status of {job_id} is {input_status}. Use 'force: true' in the payload to redo the processing. Sleeping for {SLEEP_TIME} seconds..."
-                    LOGGER.info(message)
-                    update_document(job_id, APIStatus.FAILED, message=message)
-                    time.sleep(SLEEP_TIME)
-            elif input_status in {APIStatus.OCR_INPROGRESS, APIStatus.LOCKED}:
+            job_id = document.get("id", "not_found")
+            if input_status in APIStatus.NOT_FOUND:
+                LOGGER.info(f"Next document status is {input_status}. Assuming no more documents to process."
+                            f" Sleeping for {SLEEP_TIME} seconds...")
+                time.sleep(SLEEP_TIME)
+            elif input_status in APIStatus.DOWNLOADED:
+                update_document(job_id, APIStatus.LOCKED, message="Processing...")
+                assert_valid_document(document)
+                update_document(job_id, APIStatus.OCR_INPROGRESS, message="Doing OCR...")
+                analysis = process(document)
+                update_document(job_id, APIStatus.OCR_DONE, analysis=analysis)
+            elif input_status in {APIStatus.OCR_DONE, APIStatus.OCR_INPROGRESS, APIStatus.LOCKED}:
                 message = f"Status of {job_id} is {input_status}. Sleeping for {SLEEP_TIME} seconds..."
                 LOGGER.info(message)
                 update_document(job_id, APIStatus.FAILED, message=message)
@@ -204,9 +200,7 @@ if __name__ == '__main__':
             message = f"Something went wrong for job id '{job_id}'. "
             LOGGER.exception(message)
             message += str(e)
-            try:
-                update_document(job_id, APIStatus.FAILED, message=message)
-            except Exception as e:
-                LOGGER.exception('Could not POST documents updates.')
+            if job_id:
+                update_document(job_id, APIStatus.FAILED, message=message, raise_failure=False)
             time.sleep(SLEEP_TIME)
             

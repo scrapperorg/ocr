@@ -1,6 +1,10 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
+## [Unreleased] 15.03.2023
+### Added
+- dependencies and ML models in docker container
+
 
 ## [Unreleased] 15.03.2023
 ### Added

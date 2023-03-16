@@ -72,7 +72,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-RUN apt-get update && apt-get install -y git curl
+RUN apt-get update && apt-get install -y git curl wget
 
 RUN git clone  https://github.com/ocrmypdf/OCRmyPDF
 WORKDIR OCRmyPDF
@@ -94,3 +94,4 @@ WORKDIR /app
 
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r test_requirements.txt
+RUN ./scripts/pull_models.sh

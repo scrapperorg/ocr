@@ -164,7 +164,7 @@ cd /OCRmyPDF
 pip install --no-cache-dir .
 ```
 
-### Install API requirements
+### Install app requirements
 ```bash 
 # make sure you are in the root dir
 cd ..
@@ -172,8 +172,11 @@ cd ..
 pip install -r requirements.txt
 # for running tests
 pip install -r test_requirements.txt
-# for running in production
-pip install -r prod_requirements.txt
+```
+
+### Download models
+```bash
+./scripts/pull_models.sh
 ```
 
 ### Run API

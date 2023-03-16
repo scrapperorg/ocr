@@ -22,6 +22,7 @@ class APIStatus:
     OCR_INPROGRESS = "ocr_in_progress"
     OCR_DONE = "ocr_done"
     FAILED = "failed"
+    NOT_FOUND = "not_found"
 
     @staticmethod
     def statuses() -> str:
