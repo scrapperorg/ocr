@@ -1,4 +1,5 @@
 import logging
+import os
 from subprocess import run
 
 import fitz
@@ -19,7 +20,14 @@ def get_language():
 LANGUAGE = get_language()
 LOGGER.info(f"Using language {LANGUAGE} for OCR")
 
-CMD_ARGS = ["--skip-text", "-l", LANGUAGE]
+
+WORD_LIST = "nlp/resources/custom-wordlist.txt"
+USER_WORDS = []
+if os.path.exists(WORD_LIST):
+    USER_WORDS = ["--user-words", WORD_LIST]
+
+
+CMD_ARGS = ["--skip-text", "-l", LANGUAGE] + USER_WORDS
 # some PDF files might not be convertible to PDF/A
 # then we try again with --output-type pdf
 FAIL_SAFE_ARGS = ["--output-type", "pdf"]
