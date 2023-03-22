@@ -22,21 +22,22 @@ jobs:
       - name: Extract branch name
         shell: bash
         run: |
-            echo ${GITHUB_HEAD_REF-${GITHUB_REF##*/}}
-            echo ${GITHUB_REF##*/}
-            echo "##[set-output name=branch;]$(echo ${GITHUB_HEAD_REF-${GITHUB_REF##*/}})"
-        id: extract_branch
+            echo "Branch name ${GITHUB_HEAD_REF-${GITHUB_REF##*/}}"
+            echo "Ref name ${GITHUB_REF##*/}""
 
       - name: Build
+        shell: bash
         run: |
-            docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }} .
+            docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${GITHUB_HEAD_REF-${GITHUB_REF##*/}} .
 
       - name: Test
+        shell: bash
         run: |
-            docker run ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }} ./scripts/run_tests.sh
+            docker run ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${GITHUB_HEAD_REF-${GITHUB_REF##*/}} ./scripts/run_tests.sh
 
       - name: Push
+        shell: bash
         run: |
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }}
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${GITHUB_HEAD_REF-${GITHUB_REF##*/}}
  
 
