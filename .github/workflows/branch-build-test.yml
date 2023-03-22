@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
             echo "Branch name ${GITHUB_HEAD_REF-${GITHUB_REF##*/}}"
-            echo "Ref name ${GITHUB_REF##*/}""
+            echo "Ref name ${GITHUB_REF##*/}"
 
       - name: Build
         shell: bash
