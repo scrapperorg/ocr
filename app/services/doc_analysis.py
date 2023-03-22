@@ -127,7 +127,7 @@ def filter_matches(matches):
     when merging spans with `Retokenizer.merge`. When spans overlap, the (first)
     longest span is preferred over shorter spans.
     """
-    get_sort_key = lambda match: (match[2] - match[1], -match[1])
+    def get_sort_key(match): return (match[2] - match[1], -match[1])
     sorted_matches = sorted(matches, key=get_sort_key, reverse=True)
     result = []
     seen_tokens = set()

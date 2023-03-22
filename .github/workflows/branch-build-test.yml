@@ -21,28 +21,22 @@ jobs:
   
       - name: Extract branch name
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_HEAD_REF-${GITHUB_REF##*/}})"
+        run: |
+            echo ${GITHUB_HEAD_REF-${GITHUB_REF##*/}}
+            echo ${GITHUB_REF##*/}
+            echo "##[set-output name=branch;]$(echo ${GITHUB_HEAD_REF-${GITHUB_REF##*/}})"
         id: extract_branch
 
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }}
+      - name: Build
+        run: |
+            docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }} .
 
+      - name: Test
+        run: |
+            docker run -it ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }} ./scripts/run_tests.sh
 
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-  
-      - name: Running tests
-        uses: cloudposse/github-action-docker-compose-test-run@main
-        with:
-          file: docker-compose.yml
-          service: ocr
-          command: scripts/run_tests.sh
+      - name: Push
+        run: |
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }}
+ 
+
