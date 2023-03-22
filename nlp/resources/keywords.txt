@@ -1,224 +1,215 @@
-achizitie centralizata
-achizitie directa
-achizitie publica
-achizitie sectoriala
-achizitii centralizate
-achizitii publice
-achizitii sectoriale
-achizitioneaza direct
 achizitor
 achizitor public
+achiziție centralizată
+achiziție directă
+achiziție publică
+achiziție sectorială
+achiziții centralizate
+achiziții publice
+achiziții sectoriale
+achiziționează direct
 acord cadru
 acord de asociere
-act aditional
-activitati relevante
+act adițional
 activități de achiziție auxiliare
+activități relevante
 actualiza
 actualizare
 aeroporturi
 ajustare
-alegerea procedurii de achizitii
+alegerea procedurii de achiziții
 alegerea procedurii de atribuire
 ANAP
 angajament ferm
-angajare expertiza externa
+angajare expertiză externă
 ANRMAP
 antrerpiza
 anulare procedurii de atribuire
 anularea procedurii de atribuire
-anunt de atribuire
-anunt de concesiune
-anunt de intentie valabil in mod continuu 
-anunt de participare
-anunt orientativ periodic
-anunt privind existenta unui sistem dinamic de ofertare
-apa
-aparare
-aplica procedura
+anunț de atribuire
+anunț de concesiune
+anunț de intenție valabil în mod continuu
+anunț de participare
+anunț orientativ periodic
+anunț privind existența unui sistem dinamic de ofertare
 aplicarea procedurii
+aplică procedura
+apărare
 are dreptul de a utiliza
 atribuie
 atribuire
-atribuire directa
+atribuire directă
 atribuit
-autoritate contractanta
-autoritati contractante
+autoritate contractantă
+autorități contractante
 beneficiar
 brevete
 caiet de sarcini
 calificare
-candidati
 candidatura
-capacitate de exercitare a activitatii profesionale
-capacitate profesionala
-capacitate tehnica
+candidați
+candidați
+capacitate de exercitare a activității profesionale
+capacitate profesională
+capacitate tehnică
 catalog electronic
-cerinta
-cerinte
-cerinte de natura tehnica
-cerinte tehnice
-cesioneaza
+cerințe de natură tehnică
+cerințe tehnice
+cerință
+cesionează
 cesiune
-cesiune de contract de achizitie
+cesiune de contract de achiziție
 clauze contractuale
 CNSC
-finantare
-cofinantare
-cofinantate
-colaboreaza cu
+cofinanțare
+cofinanțate
+colaborează cu
 comisie
 comisie de evaluare
 comisie de licitatiee
-compensare lucrari
+compensare lucrări
 concedent
 concesiona
 concesionar
 concesiune
-concesiune de lucrari publice
+concesiune de lucrări publice
 concesiune de servicii publice
-concurs de solutii
-conditii contractuale
-confidential
-confidentialitate
+concurs de soluții
+condiții contractuale
+confidențial
+confidențialitate
 conflict de interese
-consultarea pietei
-contestarea documentatiei de atribuire
-contestarea rezultatului procedurii de achizitii
-contestatie
-contestatie formulata pe cale judiciara
-contestatie pe cale administrativ jurisdictionala
+consultarea pieței
+contestarea documentației de atribuire
+contestarea rezultatului procedurii de achiziții
+contestație
+contestație formulată pe cale judiciară
+contestație pe cale administrativ jurisdicțională
 contract
-contract atribuit unei intreprinderi afiliate
-contract de achizitie sectoriala
-contract de concesiune de lucrari
+contract atribuit unei întreprinderi afiliate
+contract de achiziție sectorială
+contract de concesiune de lucrări
 contract de concesiune de servicii
-contract de executie lucrari
+contract de execuție lucrări
 contract de furnizare
-contract de lucrari
+contract de lucrări
 contract de servicii
-contract in domeniul apararii nationale
-contract incheiat intre entitati contractante
 contract rezervat
 contract sectorial
 contract subsecvent
+contract în domeniul apărării naționale
+contract încheiat între entități contractante
 contractare
 contractare evaluatori
-contractare experti externi
-contractare expertiza externa
+contractare expertiză externă
+contractare experți externi
 contracte
 contractor
-control ex-ante achizitie
-control procedura achizitie
+control ex-ante achiziție
+control procedura achiziție
 costul
-costul cel mai scazut
+costul cel mai scăzut
 CPV
 criterii
-criterii de calificare si selectie
+criterii de calificare și selecție
 criteriu
 criteriu de atribuire
-criteriu de calificare si selectie
-cumpara
-cumparare directa
-cumparare servicii de evaluare
+criteriu de calificare și selecție
 cumparere
+cumpărare directă
+cumpărare servicii de evaluare
+cumpără
 delegare de gestiune
-delegare directa
-denatura concurenta
+delegare directă
+denatura concurență
 departajare
 derogare
 derula
-desfasurarea procedurii de achizitii
+desfășurarea procedurii de achiziții
 determinarea valorii estimate a contractului
-divizare contractului de achizitie
-divizarea contractului de achizitie
-divizeaza contractului de achizitie
+directivele europene în domeniul achizițiilor publice
+divizare contractului de achiziție
+divizarea contractului de achiziție
+divizează contractului de achiziție
 document constatator
 document descriptiv
 document justificativ
-documentatia de atribuire
-dosarul achizitiei
+documentația de atribuire
+dosarul achiziției
 dotare
 drept exclusiv
 drept special
 dreptul ofertantului
-drepturile si obligatiile ofertantului
+drepturile și obligațiile ofertantului
 DUAE
 E-Certis
 efectuarea
-energie electrica
-energie termica
-entitate contractanta
+energie electrică
+energie termică
+entitate contractantă
 erata
 estimare
-estimarea valorii contractului de achizitie
+estimarea valorii contractului de achiziție
 evaluare
-evalueaza
+evaluează
 evenimente imprevizibile
 ex-ante
 ex-post
-exceptieexceptii/exceptari/prin excepție de la 
-exclude din procedura
-excludere din procedura
-executie
-experienta similara
-experti
+exceptări
+excepție
+exclude din procedură
+excludere din procedură
+execuție
+experiență similară
+experți
 factor
 factori de evaluare
 FIDIC
-fisa de date a achizitiei
+finanțare
+fișa de date a achiziției
 fonduri
 furnizor
-furnizor servicii de achizitie
-garantie de buna executie
-garantie de participare
+furnizor servicii de achiziție
+garanție de bună execuție
+garanție de participare
 gaze
-gestiune delegata
-gestiune directa
-impartirea contractului de achizitie
+gestiune delegată
+gestiune directă
 implementare
-in colaborare cu experti externi
-in conditiile legii
-incheia
-incheie direct
-incidenta legislatiei in domeniul achizitiilor
-initia procedura de achizitie
-initiere procedura de achizitie
-Instructiune ANAP
-Instructiune ANRMAP
-Instructiuni ANAP
-Instructiuni ANRMAP
-instructiuni catre ofertanti/candidati
+incidența legislației în domeniul achizițiilor
+iniția procedura de achiziție
+inițiere procedură de achiziție
+Instrucțiune ANAP
+Instrucțiune ANRMAP
+instrucțiuni ANAP
+instrucțiuni ANRMAP
+instrucțiuni către
+instrucțiuni către ofertanți
 interes public
-intreprindere publica
-invitatie (de participare)
-invitatie de participare
-invitatie la licitatie
-invitatie la procedura
+invitație de participare
+invitație la licitație
+invitație la procedură
 JOUE
 Jurnalul Oficial al Uniunii Europene
-lansare procedura de achizitii
+lansare procedură de achiziții
 Legea nr. 101/2016
 Legea nr.100/2016 – HG nr. 867/2016
 Legea nr.98/2016 – HG nr. 395/2016
 Legea nr.99/2016 – HG nr.394/2016
-legislatia europeana in domeniul achizitiilor publice
-legislatia in domeniul achizitiilor publice
-legislatia in materia achizitiilor publice
-legislatia in materia achizitiilor publice/directivele europene in domeniul achizitiilor publice
-legislatiei in domeniul achizitiilor publice
-licitatia deschisa
-licitatie
+legislația europeană în domeniul achizițiilor publice
+legislația în domeniul achizițiilor publice
+legislația în materia achizițiilor publice
+legislația în materia achizițiilor publice
+legislației în domeniul achizițiilor publice
+licitația deschisă
+licitație
 licitație electronică
 livrare
-lot
 lotizare
-lucrari
-lucrari suplimentare
-marci
-masuri de remediere
-masuri de remedire
+lucrări
+lucrări suplimentare
 membrii comisiei de evaluare
-modalitate de achizitie
+modalitate de achiziție
 modalitate de acordare
 modalitate de atribuire
 modificare contractului
@@ -226,33 +217,35 @@ modificarea caietului de sarcini
 modificarea contractului
 modificarea criteriilor de atribuire
 modificarea criteriilor de calificare
-modificarea criteriilor de selectie
+modificarea criteriilor de selecție
 modificarea ofertei
-modificarea solutiei tehnice
-modificari contractului
+modificarea soluției tehnice
+modificări contractului
 motiv de excludere
-motive de excludere 
+motive de excludere
+măsuri de remediere
+măsuri de remedire
 nediscriminare
-negociere contractului de achizitie
-negocierea competitiva
-negocierea contractului de achizitie
-negocierea fara invitație prealabila la procedura concurentiala de ofertare
-negocierea fara publicare prealabila
-nepublicarea documentatiei de atribuire
-nepublicarea unui anunt
+negociere contractului de achiziție
+negocierea competitivă
+negocierea contractului de achiziție
+negocierea fără invitație prealabilă la procedura concurențială de ofertare
+negocierea fără publicare prealabilă
+nepublicarea documentației de atribuire
+nepublicarea unui anunț
 nominalizare
 norme interne
 norme metodologice
-nota justificativa
-note de comanda suplimentara
-note de renuntare
-notificare prelabila
-O.U.G. nr. 34/2006 – H.G.  nr. 925/2006
-obiect de investitie
-obiectiv de investitie
+note de comandă suplimentară
+note de renunțare
+notificare prelabilă
+notă justificativă
+O.U.G. nr. 34/2006 – H.G. nr. 925/2006
+obiect de investiție
+obiectiv de investiție
 obiectul contractului
-obligatia ofertantului
-obtinerea documentatiei de atribuire
+obligația ofertantului
+obținerea documentației de atribuire
 oferta
 ofertant
 operator economic
@@ -263,80 +256,81 @@ parteneriat
 parteneriat public-privat
 petrol
 planificare
-planificarea achizitiei
+planificarea achiziției
 porturi
-pregatirea achizitiei
+pregătirea achiziției
 prejudicii
 prejudiciu
-prelungire contractuala
+prelungire contractuală
 prelungirea termenelor
 prestare
-prestatii
-pret neobisnuit de scazut
-pretul 
-pretul cel mai scazut
+prestații
 prevederi legale
+preț neobișnuit de scăzut
+prețul
+prețul cel mai scăzut
 prin derogare de la
+prin excepție de la
 procedeu
-procedura
-procedura de achizitie
-procedura de atribuire
-procedura in domeniul apararii
-procedura proprieprocedura speciala
-procedura simplificata
+procedură
+procedură de achiziție
+procedură de atribuire
+procedură proprieprocedura specială
+procedură simplificată
+procedură în domeniul apărării
 proces de atribuire
 produse
-programe nationale
-programul anual al achizitiilor publice
-programul anual al achizitiilor sectoriale
+programe naționale
+programul anual al achizițiilor publice
+programul anual al achizițiilor sectoriale
 proiect
-proiect de investitii
-proiect major de investitii
+proiect de investiții
+proiect major de investiții
 proiectare
-propunere financiara
-propunere tehnica
-publicarea documentatiei de atribuire
-publicarea unui anunt
+propunere financiară
+propunere tehnică
+publicarea documentației de atribuire
+publicarea unui anunț
 punctaj
-punerea la dispozitie a documentatiei de atribuire
+punerea la dispoziție a documentației de atribuire
 raport calitate-cost
-raport calitate-pret
+raport calitate-preț
 raportul procedurii
-realizarea achizitiei
-realizarea achizitiei publice
-redeventa
+realizarea achiziției
+realizarea achiziției publice
+redevență
 reducerea termenelor
-restrangere artificiala a concurentei
-restransa procedura de licitatii
+restrângere artificială a concurenței
+restrânsaprocedură de licitații
 revizuire
 rezilia
 reziliere
-rezultatul procedurii 
+rezultatul procedurii
 risc de operare
 SEAP
+SEAP
 securitate
-selecteaza
-selectie
+selectează
+selecție
 servicii
 servicii auxiliare
-servicii comunitare de utilitati publice
+servicii comunitare de utilități publice
 servicii de evaluare
-servicii de utilitate publica
-servicii postale
+servicii de utilitate publică
+servicii poștale
 servicii publice
 servicii sociale
-Serviciu de utilitate publica
+Serviciu de utilitate publică
 serviciu public
 similar
-similare
-sistemul electronic de achizitii publice
-SEAP
-situatie de conflict de interese
-situatie potential generatoare de conflict de interese
-specificatie
-specificatii tehnice
-standarde nationale
-stategia anuala de achizitie publica
+sistem de ofertare
+sistemul electronic de achiziții publice
+situație de conflict de interese
+situație potențial generatoare de conflict de interese
+specificație
+specificații tehnice
+standarde naționale
+strategia anuală de achiziție publică
 strategie de contractare
 studiu de fezabilitate
 studiu de fundamentare
@@ -345,20 +339,26 @@ subcontractare
 subcriteriu de atribuire
 suplimentare
 suspendarea procedurii
-sustinerea unui tert
+susținerea unui terț
 tehnic
 tehnice
 termen
-termen-limita de depunere a ofertelor
-termene
-tert sustinator
+termen-limită de depunere a ofertelor
+terț susținător
 transparență
 transport
 tratament egal
-unitate centralizata
-unitati centralizate
-unor terti
+unitate centralizată
+unități centralizate
+unor terți
 va efectua
-valoare achizitie
-valoare estimata
-verificare ex-post achizitie
+valoare achiziție
+valoare estimată
+verificare ex-achiziție
+verificare post-achiziție
+împărțirea contractului de achiziție
+în colaborare cu experți externi
+în condițiile legii
+încheia
+încheie direct
+întreprindere publică
