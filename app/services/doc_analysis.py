@@ -3,15 +3,13 @@ from collections import defaultdict
 from io import BytesIO
 
 import fitz
+import spacy
+import spacy_alignments as tokenizations
+from spacy.matcher import PhraseMatcher
 
 from app.services.ocr_evaluation import normalize_word
 from app.utils.file_util import read_text_file
 from nlp.resources.constants import KEYWORDS_PATH
-
-
-import spacy
-from spacy.matcher import PhraseMatcher
-import spacy_alignments as tokenizations
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +20,7 @@ def load_keywords():
     return keywords
 
 
-NLP = spacy.load('ro_core_news_sm')
+NLP = spacy.load("ro_core_news_sm")
 KEYWORDS = load_keywords()
 KEYWORDS_AS_DOCS = list(NLP.pipe(KEYWORDS))
 MATCHER = PhraseMatcher(NLP.vocab, attr="LEMMA")
@@ -149,13 +147,13 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
             page = pdfDoc[pg]
             word_coordinates = page.get_text_words(fitz.TEXTFLAGS_SEARCH)
             tokens_pdf = [w[4] for w in word_coordinates]
-            doc = NLP(' '.join(tokens_pdf), disable=['ner', 'parser'])
+            doc = NLP(" ".join(tokens_pdf), disable=["ner", "parser"])
             tokens_spc = [t.text for t in doc]
             pdf2spc, spc2pdf = tokenizations.get_alignments(tokens_pdf, tokens_spc)
             matches = MATCHER(doc)
             matches = filter_matches(matches)
             for match_id, start, end in matches:
-                string_id = NLP.vocab.strings[match_id] 
+                string_id = NLP.vocab.strings[match_id]
                 span = doc[start:end]
                 LOGGER.debug(match_id, string_id, start, end, span.text)
                 indecsi = sum(spc2pdf[start:end], [])
@@ -176,11 +174,16 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
                 highlight.set_info(content=string_id)
                 highlight.update()
             for entity in doc.ents:
-                if entity.label_ not in {"PERSON", "NAT_REL_POL", "GPE", "ORGANIZATION"}:
+                if entity.label_ not in {
+                    "PERSON",
+                    "NAT_REL_POL",
+                    "GPE",
+                    "ORGANIZATION",
+                }:
                     continue
                 string_id = entity.text
                 LOGGER.debug(match_id, string_id, start, end, entity.text)
-                indecsi = sum(spc2pdf[entity.start:entity.end], [])
+                indecsi = sum(spc2pdf[entity.start : entity.end], [])
                 pozitii = [fitz.Rect(word_coordinates[idx][0:4]) for idx in indecsi]
                 if pozitii:
                     area = pozitii[0]
@@ -218,5 +221,5 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
 
 
 def highlight_keywords(input_pdf_path, output_pdf_path):
-    #return highlight_keywords_strlev(input_pdf_path, output_pdf_path)
+    # return highlight_keywords_strlev(input_pdf_path, output_pdf_path)
     return highlight_keywords_spacy(input_pdf_path, output_pdf_path)
