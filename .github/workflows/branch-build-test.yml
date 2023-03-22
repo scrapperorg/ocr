@@ -33,7 +33,7 @@ jobs:
 
       - name: Test
         run: |
-            docker run -it ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }} ./scripts/run_tests.sh
+            docker run ${{ secrets.DOCKERHUB_USERNAME }}/ocr:${{ steps.extract_branch.outputs.branch }} ./scripts/run_tests.sh
 
       - name: Push
         run: |
