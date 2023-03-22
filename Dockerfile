@@ -77,19 +77,20 @@ RUN pip3 install --no-cache-dir .[test,webservice,watcher]
 # USER worker
 # WORKDIR /home/worker
 
-# RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-# ENV PATH="/root/.cargo/bin:${PATH}"
-# pytokenizations
-
 
 RUN mkdir -p /app
 COPY . /app
 WORKDIR /app
 
-RUN pip3 install -r requirements.txt
-RUN pip3 install -r test_requirements.txt
+# no need to do a full rust install
+#RUN curl https://sh.rustup.rs > sh.rustup.rs \
+#    && sh sh.rustup.rs -y \
+#    && . /root/.cargo/env \
+#    && echo 'source /root/.cargo/env' >> /root/.bashrc \
+#    && rustup update 
+
+RUN pip3 install -r requirements.txt \
+    && pip3 install -r test_requirements.txt
 
 RUN echo "Downloading models..."
-RUN ./scripts/pull_models.sh
-RUN echo "Setting tesseract model..."
-RUN cp nlp/resources/tessdata/* /usr/share/tesseract-ocr/5/tessdata/
+RUN ./scripts/pull_models.sh && cp nlp/resources/tessdata/* /usr/share/tesseract-ocr/5/tessdata/

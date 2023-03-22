@@ -21,7 +21,7 @@ import requests
 import json
 import time
 import sys
-
+import time
 from app.constants import APIStatus
 
 from app.services import doc_analysis, ocr_evaluation, ocr_service
@@ -36,7 +36,7 @@ API_URL = os.environ.get("API_URL", "http://3.229.101.152:8081")
 API_ENDPOINT = os.environ.get("API_ENDPOINT", API_URL)
 OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "nlp/documents/analysis")
 SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
-
+DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 
 LOG_CONFIG = f"Worker {WORKER_ID}: " + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
 logging.basicConfig(level="INFO", format=LOG_CONFIG)
@@ -74,8 +74,7 @@ class ResponseField:
     TEXT_FILE = "text_file"
     TEXT = "text"
     QUALITY = "ocr_quality"
-    PART = "part"
-    TOTAL = "total_parts"
+    TIME = "processing_time"
 
 
 
@@ -91,13 +90,14 @@ def get_next_document(not_found=False):
     return response.json()
 
 
-def get_next_document_mock():
-    #"storagePath":	"/opt/storage/3b4d634d-8616-4809-9c68-2e2c923d1e1a.pdf",
-    retval = json.loads("""{
-    "id":	"3b4d634d-8616-4809-9c68-2e2c923d1e1a",
-    "storagePath":	"nlp/documents/3b4d634d-8616-4809-9c68-2e2c923d1e1a.pdf",
+def get_next_document_mock(doc_id='3b4d634d-8616-4809-9c68-2e2c923d1e1a', directory='nlp/documents/'):
+    #doc_id = 'fe1b2d8d-7d89-4af2-aa3e-932d9624f7fb'
+    in_str = """{{
+    "id":	"{doc_id}",
+    "storagePath":	"{directory}/{doc_id}.pdf",
     "status":	"downloaded"
-    }""")
+    }}""".format(doc_id=doc_id, directory=directory)
+    retval = json.loads(in_str)
     return retval
 
 
@@ -142,13 +142,14 @@ def assert_valid_document(document):
     assert_path_exists(document["storagePath"])
 
 
-def process(document):
+def process(document, output_path):
+    start_time = time.time()
     js_content = {ResponseField.IN_STATUS: document['status']}
     input_file = document["storagePath"]
     js_content[ResponseField.IN] = input_file
     assert_path_exists(input_file)
-    ocr_output = make_derived_file_name(input_file, new_path=OUTPUT_PATH, new_extension='pdf', new_suffix='ocr')
-    anl_output = make_derived_file_name(input_file, new_path=OUTPUT_PATH, new_extension='pdf', new_suffix='highlight')
+    ocr_output = make_derived_file_name(input_file, new_path=output_path, new_extension='pdf', new_suffix='ocr')
+    anl_output = make_derived_file_name(input_file, new_path=output_path, new_extension='pdf', new_suffix='highlight')
     ocr_service.call_ocr(input_file, ocr_output)
     # TODO: call this instead of the cli 
     # ocr_service.run_ocr(input_file, ocr_output)
@@ -161,12 +162,22 @@ def process(document):
     assert_path_exists(anl_output)
     js_content[ResponseField.ANALYSIS] = anl_output
     js_content[ResponseField.ANALYSIS_META] = highlight_meta_js
+    time_duration = round(time.time() - start_time, 3)
+    js_content[ResponseField.TIME] = time_duration
     return js_content
 
 
 if MOCK == 'true':
     get_next_document = get_next_document_mock
     update_document = update_document_mock
+
+
+def dump_json(analysis, output_path):
+    json_output = make_derived_file_name(analysis[ResponseField.IN], new_path=output_path, new_extension='json', new_suffix='stats')
+    with open(json_output, 'w') as f:
+        stats = {k: analysis[k] for k in (ResponseField.IN, ResponseField.OCR, ResponseField.ANALYSIS, ResponseField.TIME, ResponseField.QUALITY)}
+        #stats = analysis
+        json.dump(stats, f, indent=4)
 
 
 if __name__ == '__main__':
@@ -184,7 +195,10 @@ if __name__ == '__main__':
                 update_document(job_id, APIStatus.LOCKED, message="Processing...")
                 assert_valid_document(document)
                 update_document(job_id, APIStatus.OCR_INPROGRESS, message="Doing OCR...")
-                analysis = process(document)
+                analysis = process(document, OUTPUT_PATH)
+                LOGGER.info(f'Processing time took: {analysis[ResponseField.TIME]} seconds')
+                if DUMP_JSON is True:
+                    dump_json(analysis, OUTPUT_PATH)
                 update_document(job_id, APIStatus.OCR_DONE, analysis=analysis)
             elif input_status in {APIStatus.OCR_DONE, APIStatus.OCR_INPROGRESS, APIStatus.LOCKED}:
                 message = f"Status of {job_id} is {input_status}. Sleeping for {SLEEP_TIME} seconds..."
