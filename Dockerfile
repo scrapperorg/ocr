@@ -58,12 +58,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libsm6 libxext6 libxrender-dev \
   pngquant \
   tesseract-ocr \
-  tesseract-ocr-chi-sim \
-  tesseract-ocr-deu \
-  tesseract-ocr-eng \
-  tesseract-ocr-fra \
-  tesseract-ocr-por \
-  tesseract-ocr-spa \
   tesseract-ocr-ron \
   unpaper \
   && rm -rf /var/lib/apt/lists/*
@@ -72,7 +66,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-RUN apt-get update && apt-get install -y git curl
+RUN apt-get update && apt-get install -y git curl wget
 
 RUN git clone  https://github.com/ocrmypdf/OCRmyPDF
 WORKDIR OCRmyPDF
@@ -83,14 +77,20 @@ RUN pip3 install --no-cache-dir .[test,webservice,watcher]
 # USER worker
 # WORKDIR /home/worker
 
-# RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-# ENV PATH="/root/.cargo/bin:${PATH}"
-# pytokenizations
-
 
 RUN mkdir -p /app
 COPY . /app
 WORKDIR /app
 
-RUN pip3 install -r requirements.txt
-RUN pip3 install -r test_requirements.txt
+# no need to do a full rust install
+#RUN curl https://sh.rustup.rs > sh.rustup.rs \
+#    && sh sh.rustup.rs -y \
+#    && . /root/.cargo/env \
+#    && echo 'source /root/.cargo/env' >> /root/.bashrc \
+#    && rustup update 
+
+RUN pip3 install -r requirements.txt \
+    && pip3 install -r test_requirements.txt
+
+RUN echo "Downloading models..."
+RUN ./scripts/pull_models.sh && cp nlp/resources/tessdata/* /usr/share/tesseract-ocr/5/tessdata/

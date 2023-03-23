@@ -97,6 +97,17 @@ An example body response is here:
 ```
 </details>
 
+The possible statuses of a document are:
+```python
+class Statuses:
+    "downloaded"
+    "locked"
+    "ocr_in_progress"
+    "ocr_done"
+    "ocr_failed"
+    "not_found"
+```
+
 ### Starting the container
 Once these environment variables have been set, one can simply start the container using:
 ```bash
@@ -130,8 +141,8 @@ docker compose -f docker-compose_dev.yml exec ocr bash -c "./scripts/run_tests.s
 
 
 
-## Running locally on the host os
-The following steps are for an ubuntu system.
+## Installing locally on the host OS
+The following steps are valid for an **Ubuntu** system.
 
 ### Create virtual env
 ```bash 
@@ -164,25 +175,25 @@ cd /OCRmyPDF
 pip install --no-cache-dir .
 ```
 
-### Install API requirements
+### Install app requirements
 ```bash 
 # make sure you are in the root dir
 cd ..
+
 # basic dev requirements
 pip install -r requirements.txt
+
 # for running tests
 pip install -r test_requirements.txt
-# for running in production
-pip install -r prod_requirements.txt
 ```
 
-### Run API
+### Download models
 ```bash
-# either run the script
-./scripts/start-dev.sh
+# download models to nlp/resources
+./scripts/pull_models.sh
 
-# or simply start
-uvicorn --host localhost --port 8080 --log-level debug --log-config logging.ini api.api:app
+# copy tesseract model to TESSDATA dir
+cp nlp/resources/tessdata/* /usr/share/tesseract-ocr/5/tessdata/
 ```
 
 ### Run tests
@@ -195,4 +206,15 @@ flake8 .
 
 # and pytest unittests
 pytest --cov-branch --cov-report term --cov-report html:coverage -rfExX --color=yes .
+```
+
+
+### Run API
+API is currently for testing purposes.
+```bash
+# either run the script
+./scripts/start-dev.sh
+
+# or simply start
+uvicorn --host localhost --port 8080 --log-level debug --log-config logging.ini api.api:app
 ```

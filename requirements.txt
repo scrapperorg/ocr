@@ -6,3 +6,5 @@ aiofiles==22.1.0
 nltk==3.8.1
 PyMuPDF==1.21.1
 tenacity==8.2.1
+spacy==3.5
+spacy-alignments==0.9.0

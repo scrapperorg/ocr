@@ -1,6 +1,21 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
+## [0.1.1] 22.03.2023
+### Added
+- smarter keyword matching using lemmatization
+- added annotation to the original keyword in the highligh
+- parameter to dump information into a json file
+- test that runs the whole analysis
+- option to underline Named Entities
+
+
+## [Unreleased] 16.03.2023
+### Added
+- dependencies and ML models in docker container
+- added custom Tesseract model and external resources
+- if custom Tesseract model is missing, fail-back on default
+
 
 ## [Unreleased] 15.03.2023
 ### Added
