@@ -134,7 +134,7 @@ backup.dump
 backup.dump.gz
 .vscode
 
-# analysis 
+# analysis
 !nlp/documents/empty.pdf
 !nlp/documents/encrypt.pdf
 !nlp/documents/kwds.pdf

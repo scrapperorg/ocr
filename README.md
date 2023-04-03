@@ -17,7 +17,7 @@ A path that is accessible by the worker to be used to write the output PDF files
 This is the amount of seconds to sleep when encountering an error or when no more documents are left to be processed.
 
 ##### API_ENDPOINT=http://{}
-Represents the endpoint that feeds the worker with documents. 
+Represents the endpoint that feeds the worker with documents.
 The HTTP server must implement two endpoints `/next-document` to return a document of the following form:
 ```json
 {
@@ -114,9 +114,9 @@ Once these environment variables have been set, one can simply start the contain
 # make sure to pull the latest changes
 docker compose pull
 # start services
-docker compose up -d 
+docker compose up -d
 # close services
-docker compose down 
+docker compose down
 ```
 
 ### Building it from scratch
@@ -127,10 +127,10 @@ docker build -t readable/ocr:main -f ./Dockerfile .
 
 # or via docker compose
 # build services
-docker compose -f docker-compose_dev.yml build 
+docker compose -f docker-compose_dev.yml build
 
 # run services
-docker compose -f docker-compose_dev.yml up -d 
+docker compose -f docker-compose_dev.yml up -d
 
 # stop services
 docker compose -f docker-compose_dev.yml down
@@ -145,7 +145,7 @@ docker compose -f docker-compose_dev.yml exec ocr bash -c "./scripts/run_tests.s
 The following steps are valid for an **Ubuntu** system.
 
 ### Create virtual env
-```bash 
+```bash
 python3 -m venv .env
 # load the env
 source .env/bin/activate
@@ -176,7 +176,7 @@ pip install --no-cache-dir .
 ```
 
 ### Install app requirements
-```bash 
+```bash
 # make sure you are in the root dir
 cd ..
 
@@ -210,7 +210,7 @@ pytest --cov-branch --cov-report term --cov-report html:coverage -rfExX --color=
 
 ### Run performance test
 ```bash
-# 1. get a dataset to run the performance test on 
+# 1. get a dataset to run the performance test on
 mkdir -p corpus/
 wget https://github.com/senisioi/rolegal/releases/download/raw_pdf_v1/senat.tar.gz -P corpus/
 wget https://github.com/senisioi/rolegal/releases/download/raw_pdf_v1/cdep_senat.tar.gz -P corpus/

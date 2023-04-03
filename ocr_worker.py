@@ -156,7 +156,7 @@ def process(document, output_path, dump_text=False):
     ocr_output = make_derived_file_name(input_file, new_path=output_path, new_extension='pdf', new_suffix='ocr')
     anl_output = make_derived_file_name(input_file, new_path=output_path, new_extension='pdf', new_suffix='highlight')
     ocr_service.call_ocr(input_file, ocr_output)
-    # TODO: call this instead of the cli 
+    # TODO: call this instead of the cli
     # ocr_service.run_ocr(input_file, ocr_output)
     assert_path_exists(ocr_output)
     js_content[ResponseField.OCR] = ocr_output
@@ -226,4 +226,3 @@ if __name__ == '__main__':
             if job_id:
                 update_document(job_id, APIStatus.FAILED, message=message, raise_failure=False)
             time.sleep(SLEEP_TIME)
-            

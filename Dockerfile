@@ -87,7 +87,7 @@ WORKDIR /app
 #    && sh sh.rustup.rs -y \
 #    && . /root/.cargo/env \
 #    && echo 'source /root/.cargo/env' >> /root/.bashrc \
-#    && rustup update 
+#    && rustup update
 
 RUN pip3 install -r requirements.txt \
     && pip3 install -r test_requirements.txt
