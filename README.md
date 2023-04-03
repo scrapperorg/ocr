@@ -151,6 +151,12 @@ python3 -m venv .env
 source .env/bin/activate
 ```
 
+### Install pre-commit hooks
+```bash
+pip install pre-commit
+pre-commit install
+```
+
 ### Install tesseract
 ```bash
 apt-get update && apt-get install -y --no-install-recommends \
