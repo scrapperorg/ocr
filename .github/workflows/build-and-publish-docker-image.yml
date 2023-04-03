@@ -43,12 +43,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
   
-      - name: Running tests
-        uses: cloudposse/github-action-docker-compose-test-run@main
-        with:
-          file: docker-compose.yml
-          service: ocr
-          command: scripts/run_tests.sh
+      - name: Pull
+        shell: bash
+        run: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ocr:main
+
+      - name: Test
+        shell: bash
+        run: |
+            docker run ${{ secrets.DOCKERHUB_USERNAME }}/ocr:main ./scripts/run_tests.sh
+
+      - name: Tag and Push latest
+        shell: bash
+        run: |
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/ocr:latest ${{ secrets.DOCKERHUB_USERNAME }}/ocr:main && \
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/ocr:latest
+
+ 
+
+
 
 
   deploy:

@@ -1,6 +1,12 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
+## [0.2.0] 03.04.2023
+### Added
+- performance test script
+- option to load ro_legal_fl model
+- statistics in the output
+
 ## [0.1.1] 22.03.2023
 ### Added
 - smarter keyword matching using lemmatization
