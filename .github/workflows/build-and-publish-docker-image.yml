@@ -56,7 +56,7 @@ jobs:
       - name: Tag and Push latest
         shell: bash
         run: |
-            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/ocr:latest ${{ secrets.DOCKERHUB_USERNAME }}/ocr:main && \
+            docker tag ${{ secrets.DOCKERHUB_USERNAME }}/ocr:main ${{ secrets.DOCKERHUB_USERNAME }}/ocr:latest && \
             docker push ${{ secrets.DOCKERHUB_USERNAME }}/ocr:latest
 
  

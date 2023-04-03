@@ -199,7 +199,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
                     continue
                 num_ents += 1
                 string_id = entity.text
-                LOGGER.debug(match_id, string_id, start, end, entity.text)
+                LOGGER.debug(string_id, start, end, entity.text)
                 indecsi = sum(spc2pdf[entity.start : entity.end], [])
                 pozitii = [fitz.Rect(word_coordinates[idx][0:4]) for idx in indecsi]
                 if pozitii:

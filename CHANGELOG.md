@@ -3,9 +3,11 @@ Adding notes to what is being changed from time to time
 
 ## [0.2.0] 03.04.2023
 ### Added
-- performance test script
+- performance test script that generates stats for each file
 - option to load ro_legal_fl model
 - statistics in the output
+- pipeline fixes
+
 
 ## [0.1.1] 22.03.2023
 ### Added

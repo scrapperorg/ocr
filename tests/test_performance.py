@@ -12,11 +12,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 def files_in_folder(mypath, filter=''):
-    return [ os.path.join(mypath,f) for f in os.listdir(mypath) if filter in f and os.path.isfile(os.path.join(mypath,f)) ]
+    return sorted([ os.path.join(mypath,f) for f in os.listdir(mypath) if filter in f and os.path.isfile(os.path.join(mypath,f)) ])
 
 
 def folders_in_folder(mypath):
-    return [ os.path.join(mypath,f) for f in os.listdir(mypath) if os.path.isdir(os.path.join(mypath,f)) ]
+    return sorted([ os.path.join(mypath,f) for f in os.listdir(mypath) if os.path.isdir(os.path.join(mypath,f)) ])
 
 
 def run_performance_test(corpus_path, out_file='performance_test.jsonl'):
@@ -26,7 +26,9 @@ def run_performance_test(corpus_path, out_file='performance_test.jsonl'):
         f.write('')
     for corpus in folders_in_folder(corpus_path):
         LOGGER.info(corpus)
-        for law_dir in folders_in_folder(corpus):            
+        for law_dir in folders_in_folder(corpus):
+            analysis_directory = os.path.join(law_dir, 'analysis')
+            safe_make_dirs(analysis_directory)
             LOGGER.info(law_dir)
             law = os.path.basename(law_dir)
             for pdf_file in files_in_folder(law_dir, filter='.pdf'):
@@ -34,7 +36,7 @@ def run_performance_test(corpus_path, out_file='performance_test.jsonl'):
                 doc_id = os.path.basename(pdf_file).replace('.pdf', '')
                 document = get_next_document_mock(doc_id, law_dir)
                 try:
-                    analysis = process(document, law_dir, dump_text=True)
+                    analysis = process(document, analysis_directory, dump_text=True)
                     dump_json(analysis, law_dir)
                     item['corpus'] = os.path.basename(corpus)
                     item['law'] = law
