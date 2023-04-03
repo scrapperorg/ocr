@@ -208,6 +208,22 @@ flake8 .
 pytest --cov-branch --cov-report term --cov-report html:coverage -rfExX --color=yes .
 ```
 
+### Run performance test
+```bash
+# 1. get a dataset to run the performance test on 
+mkdir -p corpus/
+wget https://github.com/senisioi/rolegal/releases/download/raw_pdf_v1/senat.tar.gz -P corpus/
+wget https://github.com/senisioi/rolegal/releases/download/raw_pdf_v1/cdep_senat.tar.gz -P corpus/
+wget https://github.com/senisioi/rolegal/releases/download/raw_pdf_v1/cdep.tar.gz -P corpus/
+cd corpus && tar -xvf senat.tar.gz && tar -xvf cdep_senat.tar.gz && tar -xvf cdep.tar.gz && cd ..
+
+# 2. run the performance test
+docker compose -f docker-compose_perf.yml pull && \
+docker compose -f docker-compose_perf.yml up -d
+
+docker compose -f docker-compose_perf.yml logs
+```
+
 
 ### Run API
 API is currently for testing purposes.

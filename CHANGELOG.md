@@ -8,6 +8,7 @@ Adding notes to what is being changed from time to time
 - statistics in the output
 - pipeline fixes
 - stop auto-deploy of API service
+- performance tests with docker-compose.yml
 
 
 ## [0.1.1] 22.03.2023

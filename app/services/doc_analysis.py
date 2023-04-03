@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 from io import BytesIO
-
+import os
 import fitz
 import spacy
 import spacy_alignments as tokenizations
@@ -19,12 +19,17 @@ def load_keywords():
     # TODO: more sophisticated keyword matching
     return keywords
 
+ENABLE_NER = bool(os.environ.get("ENABLE_NER", False))
+DISABLE = ["ner", "parser"]
+if ENABLE_NER:
+    DISABLE = []
+
 
 MODEL_NAME = "ro_legal_fl"
 if not spacy.util.is_package(MODEL_NAME):
     MODEL_NAME = "ro_core_news_sm"
 
-NLP = spacy.load(MODEL_NAME, disable=["ner", "parser"])
+NLP = spacy.load(MODEL_NAME, disable=DISABLE)
 
 LOGGER.info(f"Loaded model {MODEL_NAME}.")
 
