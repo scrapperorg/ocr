@@ -150,17 +150,24 @@ def filter_matches(matches):
 
 def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
     highlight_meta_results = defaultdict(list)
+    statistics = {}
+    num_ents = 0
+    num_kwds = 0
+    num_wds = 0
     with fitz.open(input_pdf_path) as pdfDoc:
+        statistics["num_pages"] = pdfDoc.page_count
         for pg in range(pdfDoc.page_count):
             page = pdfDoc[pg]
             word_coordinates = page.get_text_words(fitz.TEXTFLAGS_SEARCH)
             tokens_pdf = [w[4] for w in word_coordinates]
             doc = NLP(" ".join(tokens_pdf))
+            num_wds += len(doc)
             tokens_spc = [t.text for t in doc]
             pdf2spc, spc2pdf = tokenizations.get_alignments(tokens_pdf, tokens_spc)
             matches = MATCHER(doc)
             matches = filter_matches(matches)
             for match_id, start, end in matches:
+                num_kwds += 1
                 string_id = NLP.vocab.strings[match_id]
                 span = doc[start:end]
                 LOGGER.debug(match_id, string_id, start, end, span.text)
@@ -190,6 +197,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
                     "ORGANIZATION",
                 }:
                     continue
+                num_ents += 1
                 string_id = entity.text
                 LOGGER.debug(match_id, string_id, start, end, entity.text)
                 indecsi = sum(spc2pdf[entity.start : entity.end], [])
@@ -215,7 +223,9 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
 
     with open(output_pdf_path, mode="wb") as f:
         f.write(output_buffer.getbuffer())
-
+    statistics["num_ents"] = num_ents
+    statistics["num_kwds"] = num_kwds
+    statistics["num_wds"] = num_wds
     highlight_meta_js = []
     for k in highlight_meta_results:
         highlight_meta_js.append(
@@ -225,7 +235,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
                 "total_occs": len(highlight_meta_results[k]),
             }
         )
-    return highlight_meta_js
+    return highlight_meta_js, statistics
     # TODO: handle errors
 
 

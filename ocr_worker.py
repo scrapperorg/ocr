@@ -74,6 +74,7 @@ class ResponseField:
     TEXT_FILE = "text_file"
     TEXT = "text"
     QUALITY = "ocr_quality"
+    STATISTICS = "statistics"
     TIME = "processing_time"
 
 
@@ -165,7 +166,8 @@ def process(document, output_path, dump_text=False):
         text_file = make_derived_file_name(input_file, new_path=output_path, new_extension='txt', new_suffix='ocr')
         ocr_service.dump_text(text, text_file)
     js_content[ResponseField.QUALITY] = ocr_evaluation.estimate_quality(text)
-    highlight_meta_js = doc_analysis.highlight_keywords(ocr_output, anl_output)
+    highlight_meta_js, statistics = doc_analysis.highlight_keywords(ocr_output, anl_output)
+    js_content[ResponseField.STATISTICS] = statistics
     assert_path_exists(anl_output)
     js_content[ResponseField.ANALYSIS] = anl_output
     js_content[ResponseField.ANALYSIS_META] = highlight_meta_js
@@ -182,7 +184,7 @@ if MOCK == 'true':
 def dump_json(analysis, output_path):
     json_output = make_derived_file_name(analysis[ResponseField.IN], new_path=output_path, new_extension='json', new_suffix='stats')
     with open(json_output, 'w') as f:
-        stats = {k: analysis[k] for k in (ResponseField.IN, ResponseField.OCR, ResponseField.ANALYSIS, ResponseField.TIME, ResponseField.QUALITY)}
+        stats = {k: analysis[k] for k in (ResponseField.IN, ResponseField.OCR, ResponseField.ANALYSIS, ResponseField.TIME, ResponseField.QUALITY, ResponseField.STATISTICS)}
         #stats = analysis
         json.dump(stats, f, indent=4)
 

@@ -22,7 +22,7 @@ def folders_in_folder(mypath):
 def run_performance_test(corpus_path, out_file='performance_test.jsonl'):
     """Path to downloaded dirs with docs"""
     item = {}
-    with open('performance_test.jsonl', 'w') as f:
+    with open(out_file, 'w') as f:
         f.write('')
     for corpus in folders_in_folder(corpus_path):
         LOGGER.info(corpus)
@@ -44,6 +44,7 @@ def run_performance_test(corpus_path, out_file='performance_test.jsonl'):
                     item['processing_time'] = analysis['processing_time']
                     item['num_unq_kwds'] = len(analysis['highlight_metadata'])
                     item['avg_number_of_occ'] = np.mean([len(a['occs']) for a in analysis['highlight_metadata']])
+                    item.update(analysis['statistics'])
                 except Exception as e:
                     item['corpus'] = os.path.basename(corpus)
                     item['law'] = law
@@ -53,8 +54,12 @@ def run_performance_test(corpus_path, out_file='performance_test.jsonl'):
                     item['num_unq_kwds'] = -1
                     item['avg_number_of_occ'] = -1
                     item['message'] = str(e)
-                with open('performance_test.jsonl', 'a') as f:
+                with open(out_file, 'a') as f:
                     f.write(json.dumps(item) + '\n')
+
+
+def test_performance():
+    pass
 
 
 if __name__ == '__main__':

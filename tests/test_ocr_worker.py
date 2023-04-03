@@ -18,5 +18,5 @@ def test_process_entire_dir():
         try:
             analysis = process(document, output_dir)
             dump_json(analysis, output_dir)
-        except:
-            print('eșuat')
+        except Exception as e:
+            print('eșuat', str(e))
