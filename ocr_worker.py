@@ -92,6 +92,8 @@ def get_next_document(not_found=False):
 
 def get_next_document_mock(doc_id='3b4d634d-8616-4809-9c68-2e2c923d1e1a', directory='nlp/documents/'):
     #doc_id = 'fe1b2d8d-7d89-4af2-aa3e-932d9624f7fb'
+    #doc_id = 'encrypt'
+    #doc_id = 'empty'
     in_str = """{{
     "id":	"{doc_id}",
     "storagePath":	"{directory}/{doc_id}.pdf",
@@ -120,14 +122,15 @@ def update_document(id, status, message="", analysis={}, raise_failure=True):
             "message": message,
             "analysis": analysis
            }
-    LOGGER.info(f"Calling endpoint {endpoint}")
+    LOGGER.info(f"Calling endpoint {endpoint}"
+                " Document: '{id}' status: '{status}' message: '{message}'")
     response = requests.post(endpoint, json=body)
     LOGGER.info(f"Endpoint response {response.text}")
     if raise_failure:
         response.raise_for_status()
 
 
-def update_document_mock(id, status, message="", analysis={}):
+def update_document_mock(id, status, message="", analysis={}, raise_failure=True):
     endpoint = os.path.join(API_ENDPOINT, "ocr-updates")
     body = {ResponseField.WORKER: WORKER_ID,
             "id": id,
@@ -136,13 +139,14 @@ def update_document_mock(id, status, message="", analysis={}):
             "analysis": analysis
            }
     LOGGER.info(f"Calling endpoint {endpoint} with body {body}")
+    LOGGER.info(f"Raises failure")
 
 
 def assert_valid_document(document):
     assert_path_exists(document["storagePath"])
 
 
-def process(document, output_path):
+def process(document, output_path, dump_text=False):
     start_time = time.time()
     js_content = {ResponseField.IN_STATUS: document['status']}
     input_file = document["storagePath"]
@@ -157,6 +161,9 @@ def process(document, output_path):
     js_content[ResponseField.OCR] = ocr_output
     text = ocr_service.get_ocrized_text_from_blocks(ocr_output)
     js_content[ResponseField.TEXT] = text
+    if dump_text is True:
+        text_file = make_derived_file_name(input_file, new_path=output_path, new_extension='txt', new_suffix='ocr')
+        ocr_service.dump_text(text, text_file)
     js_content[ResponseField.QUALITY] = ocr_evaluation.estimate_quality(text)
     highlight_meta_js = doc_analysis.highlight_keywords(ocr_output, anl_output)
     assert_path_exists(anl_output)
@@ -201,13 +208,13 @@ if __name__ == '__main__':
                     dump_json(analysis, OUTPUT_PATH)
                 update_document(job_id, APIStatus.OCR_DONE, analysis=analysis)
             elif input_status in {APIStatus.OCR_DONE, APIStatus.OCR_INPROGRESS, APIStatus.LOCKED}:
-                message = f"Status of {job_id} is {input_status}. Sleeping for {SLEEP_TIME} seconds..."
+                message = f"Status of '{job_id}'' is '{input_status}'. Sleeping for {SLEEP_TIME} seconds..."
                 LOGGER.info(message)
                 update_document(job_id, APIStatus.FAILED, message=message)
                 time.sleep(SLEEP_TIME)
             else:
-                LOGGER.info(f"Status of {job_id} is {input_status} (unkown). Assuming no more documents to process."
-                            f"Expected one of these statuses {APIStatus.statuses()}"
+                LOGGER.info(f"Status of '{job_id}' is '{input_status}' (unkown). Assuming no more documents to process."
+                            f" Expected one of these statuses {APIStatus.statuses()}"
                             f" Sleeping for {SLEEP_TIME} seconds...")
                 time.sleep(SLEEP_TIME)
         except Exception as e:

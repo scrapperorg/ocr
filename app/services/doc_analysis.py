@@ -20,7 +20,12 @@ def load_keywords():
     return keywords
 
 
-NLP = spacy.load("ro_core_news_sm")
+MODEL_NAME = 'ro_legal_fl'
+if not spacy.util.is_package(MODEL_NAME):
+    MODEL_NAME = "ro_core_news_sm"
+
+NLP = spacy.load(MODEL_NAME)#, disable=["ner", "parser"])
+
 KEYWORDS = load_keywords()
 KEYWORDS_AS_DOCS = list(NLP.pipe(KEYWORDS))
 MATCHER = PhraseMatcher(NLP.vocab, attr="LEMMA")
@@ -127,8 +132,10 @@ def filter_matches(matches):
     when merging spans with `Retokenizer.merge`. When spans overlap, the (first)
     longest span is preferred over shorter spans.
     """
+
     def get_sort_key(match):
         return (match[2] - match[1], -match[1])
+
     sorted_matches = sorted(matches, key=get_sort_key, reverse=True)
     result = []
     seen_tokens = set()
@@ -148,7 +155,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
             page = pdfDoc[pg]
             word_coordinates = page.get_text_words(fitz.TEXTFLAGS_SEARCH)
             tokens_pdf = [w[4] for w in word_coordinates]
-            doc = NLP(" ".join(tokens_pdf), disable=["ner", "parser"])
+            doc = NLP(" ".join(tokens_pdf))
             tokens_spc = [t.text for t in doc]
             pdf2spc, spc2pdf = tokenizations.get_alignments(tokens_pdf, tokens_spc)
             matches = MATCHER(doc)
@@ -176,6 +183,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
                 highlight.update()
             for entity in doc.ents:
                 if entity.label_ not in {
+                    "LEGAL",
                     "PERSON",
                     "NAT_REL_POL",
                     "GPE",

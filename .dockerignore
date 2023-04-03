@@ -135,6 +135,9 @@ backup.dump.gz
 .vscode
 
 # analysis 
+!nlp/documents/empty.pdf
+!nlp/documents/encrypt.pdf
+!nlp/documents/kwds.pdf
 nlp/documents/analysis/
 nlp/resources/tessdata/
 nlp/resources/tessdata.tar.gz
