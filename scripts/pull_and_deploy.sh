@@ -7,7 +7,7 @@ echo "Using ${COMPOSE_FILE}"
 git pull && \
 docker compose -f $COMPOSE_FILE pull && \
 docker compose -f $COMPOSE_FILE build && \
-docker compose -f $COMPOSE_FILE up -d && \
+#docker compose -f $COMPOSE_FILE up -d && \
 echo "Done!"
 #sleep 5 
 #&& \

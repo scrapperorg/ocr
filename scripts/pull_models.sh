@@ -20,4 +20,5 @@ rm tessdata.tar.gz && \
 wget https://github.com/scrapperorg/nlp-resources/files/10898245/ro_vocabulary.tar.gz && \
 tar -xvf ro_vocabulary.tar.gz && \
 rm ro_vocabulary.tar.gz && \
-python3 -m spacy download ro_core_news_sm
+python3 -m spacy download ro_core_news_sm || \
+pip install https://github.com/scrapperorg/nlp-resources/releases/download/ro_legal_fl_0.1.0/ro_legal_fl-0.1.0-py3-none-any.whl
