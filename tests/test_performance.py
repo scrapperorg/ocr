@@ -37,7 +37,7 @@ def run_performance_test(corpus_path, out_file='performance_test.jsonl'):
                 document = get_next_document_mock(doc_id, law_dir)
                 try:
                     analysis = process(document, analysis_directory, dump_text=True)
-                    dump_json(analysis, law_dir)
+                    dump_json(analysis, analysis_directory)
                     item['corpus'] = os.path.basename(corpus)
                     item['law'] = law
                     item['doc_id'] = doc_id
@@ -51,11 +51,7 @@ def run_performance_test(corpus_path, out_file='performance_test.jsonl'):
                     item['corpus'] = os.path.basename(corpus)
                     item['law'] = law
                     item['doc_id'] = doc_id
-                    item['ocr_quality'] = -1
-                    item['processing_time'] = -1
-                    item['num_unq_kwds'] = -1
-                    item['avg_number_of_occ'] = -1
-                    item['message'] = str(e)
+                    item['status'] = str(e)
                 with open(out_file, 'a') as f:
                     f.write(json.dumps(item) + '\n')
 
