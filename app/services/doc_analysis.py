@@ -1,7 +1,8 @@
 import logging
+import os
 from collections import defaultdict
 from io import BytesIO
-import os
+
 import fitz
 import spacy
 import spacy_alignments as tokenizations
@@ -18,6 +19,7 @@ def load_keywords():
     keywords = set(read_text_file(KEYWORDS_PATH).split("\n"))
     # TODO: more sophisticated keyword matching
     return keywords
+
 
 ENABLE_NER = bool(os.environ.get("ENABLE_NER", False))
 DISABLE = ["ner", "parser"]
