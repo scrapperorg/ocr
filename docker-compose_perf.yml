@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+    ocr:
+        platform: linux/x86_64
+        image: readable/ocr:main
+        privileged: false
+        environment:
+          - WORKER_ID="performer"
+          - ENABLE_NER="True"
+        volumes:
+          - ./corpus:/corpus
+        tty: true
+        command: bash -c "PYTHONPATH='.' python3 tests/test_performance.py /corpus /corpus/perf_test_NER.jsonl"
+        deploy:
+          resources:
+              limits:
+                cpus: '1'
+                memory: 1024M
+              reservations:
+                cpus: '0.5'
+                memory: 512M
