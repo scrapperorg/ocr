@@ -24,7 +24,10 @@ MODEL_NAME = "ro_legal_fl"
 if not spacy.util.is_package(MODEL_NAME):
     MODEL_NAME = "ro_core_news_sm"
 
-NLP = spacy.load(MODEL_NAME)  # , disable=["ner", "parser"])
+NLP = spacy.load(MODEL_NAME, disable=["ner", "parser"])
+
+LOGGER.info(f"Loaded model {MODEL_NAME}.")
+
 
 KEYWORDS = load_keywords()
 KEYWORDS_AS_DOCS = list(NLP.pipe(KEYWORDS))
