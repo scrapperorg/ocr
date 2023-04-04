@@ -9,9 +9,11 @@ services:
           - WORKER_ID="performer"
           - ENABLE_NER="True"
         volumes:
-          - ./corpus:/corpus
+          - ./nlp:/nlp
+          - .:/app
         tty: true
-        command: bash -c "PYTHONPATH='.' python3 tests/test_performance.py /corpus /corpus/perf_test_NER.jsonl"
+        command: bash -c "PYTHONPATH='.' python3 tests/test_performance.py /nlp/corpus /nlp/performance_analysis"
+        restart: no
         deploy:
           resources:
               limits:

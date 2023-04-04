@@ -143,3 +143,4 @@ nlp/resources/tessdata/
 nlp/resources/tessdata.tar.gz
 nlp/resources/ro_vocabulary.tar.gz
 nlp/resources/ro_vocabulary.txt
+nlp/corpus

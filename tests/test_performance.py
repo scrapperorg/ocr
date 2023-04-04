@@ -31,16 +31,20 @@ def folders_in_folder(mypath):
     )
 
 
-def run_performance_test(corpus_path, out_file="performance_test.jsonl"):
+def run_performance_test(input_dir, out_dir, analysis_file='perf_analysis.jsonl'):
     """Path to downloaded dirs with docs"""
     item = {}
+    safe_make_dirs(out_dir)
+    out_file = os.path.join(out_dir, analysis_file)
     with open(out_file, "w") as f:
         f.write("")
-    for corpus in folders_in_folder(corpus_path):
+    for corpus in folders_in_folder(input_dir):
         LOGGER.info(corpus)
+        out_corpus = os.path.join(out_dir, os.path.basename(corpus))
+        safe_make_dirs(out_corpus)
         for law_dir in folders_in_folder(corpus):
-            analysis_directory = os.path.join(law_dir, "analysis")
-            safe_make_dirs(analysis_directory)
+            out_law_dir = os.path.join(out_corpus, os.path.basename(law_dir))
+            safe_make_dirs(out_law_dir)
             LOGGER.info(law_dir)
             law = os.path.basename(law_dir)
             for pdf_file in files_in_folder(law_dir, filter=".pdf"):
@@ -48,8 +52,8 @@ def run_performance_test(corpus_path, out_file="performance_test.jsonl"):
                 doc_id = os.path.basename(pdf_file).replace(".pdf", "")
                 document = get_next_document_mock(doc_id, law_dir)
                 try:
-                    analysis = process(document, analysis_directory, dump_text=True)
-                    dump_json(analysis, analysis_directory)
+                    analysis = process(document, out_law_dir, dump_text=True)
+                    dump_json(analysis, out_law_dir)
                     item["corpus"] = os.path.basename(corpus)
                     item["law"] = law
                     item["doc_id"] = doc_id
@@ -79,4 +83,4 @@ def test_performance():
 
 
 if __name__ == "__main__":
-    run_performance_test(sys.argv[1], out_file=sys.argv[2])
+    run_performance_test(input_dir=sys.argv[1], out_dir=sys.argv[2])
