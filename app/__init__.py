@@ -1,7 +1,7 @@
 import logging
 import os
 
-APP_VERSION = "0.3.0"
+APP_VERSION = "0.3.1"
 
 WORKER_ID = os.environ.get("WORKER_ID", 1)
 LOG_CONFIG = (
