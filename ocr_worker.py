@@ -38,7 +38,9 @@ OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "nlp/documents/analysis")
 SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 
-LOG_CONFIG = f"Worker {WORKER_ID}: " + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
+
+APP_VERSION="0.3.0"
+LOG_CONFIG = f"Worker {WORKER_ID}:{APP_VERSION} " + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
 logging.basicConfig(level="INFO", format=LOG_CONFIG)
 LOGGER = logging.getLogger(__name__)
 
@@ -76,6 +78,7 @@ class ResponseField:
     QUALITY = "ocr_quality"
     STATISTICS = "statistics"
     TIME = "processing_time"
+    WK_VERSION = 'worker_version'
 
 
 
@@ -91,16 +94,17 @@ def get_next_document(not_found=False):
     return response.json()
 
 
-def get_next_document_mock(doc_id='3b4d634d-8616-4809-9c68-2e2c923d1e1a', directory='nlp/documents/'):
+def get_next_document_mock(doc_id='38f93d44-1e4e-4c37-9df8-879e2b5993c0', directory='nlp/documents/'):
     #doc_id = 'fe1b2d8d-7d89-4af2-aa3e-932d9624f7fb'
+    #doc_id = '3b4d634d-8616-4809-9c68-2e2c923d1e1a'
     #doc_id = 'encrypt'
     #doc_id = 'empty'
     in_str = """{{
     "id":	"{doc_id}",
     "storagePath":	"{directory}/{doc_id}.pdf",
-    "status":	"downloaded"
+    "status": "not_found"
     }}""".format(doc_id=doc_id, directory=directory)
-    retval = json.loads(in_str)
+    retval = json.loads(in_str) #"downloaded"
     return retval
 
 
@@ -150,6 +154,7 @@ def assert_valid_document(document):
 def process(document, output_path, dump_text=False):
     start_time = time.time()
     js_content = {ResponseField.IN_STATUS: document['status']}
+    js_content = {ResponseField.WK_VERSION: APP_VERSION}
     input_file = document["storagePath"]
     js_content[ResponseField.IN] = input_file
     assert_path_exists(input_file)
@@ -190,15 +195,19 @@ def dump_json(analysis, output_path):
 
 
 if __name__ == '__main__':
+    input_status = 'no_input_status'
     while True:
         job_id = ""
         try:
             document = get_next_document()
+            last_input_status = input_status
             input_status = document['status']
             job_id = document.get("id", "not_found")
             if input_status in APIStatus.NOT_FOUND:
-                LOGGER.info(f"Next document status is {input_status}. Assuming no more documents to process."
-                            f" Sleeping for {SLEEP_TIME} seconds...")
+                if input_status != last_input_status:
+                    LOGGER.info(f"Next document status is {input_status}. Assuming no more documents to process."
+                                f" Next call will take place in {SLEEP_TIME} seconds..."
+                                f" This message will only be logged once.")
                 time.sleep(SLEEP_TIME)
             elif input_status in APIStatus.DOWNLOADED:
                 update_document(job_id, APIStatus.LOCKED, message="Processing...")
@@ -215,9 +224,10 @@ if __name__ == '__main__':
                 update_document(job_id, APIStatus.FAILED, message=message)
                 time.sleep(SLEEP_TIME)
             else:
-                LOGGER.info(f"Status of '{job_id}' is '{input_status}' (unkown). Assuming no more documents to process."
-                            f" Expected one of these statuses {APIStatus.statuses()}"
-                            f" Sleeping for {SLEEP_TIME} seconds...")
+                if input_status != last_input_status:
+                    LOGGER.info(f"Status of '{job_id}' is '{input_status}' (unkown). Assuming no more documents to process."
+                                f" Expected one of these statuses {APIStatus.statuses()}"
+                                f" Next call will take place {6*SLEEP_TIME} seconds...")
                 time.sleep(SLEEP_TIME)
         except Exception as e:
             message = f"Something went wrong for job id '{job_id}'. "

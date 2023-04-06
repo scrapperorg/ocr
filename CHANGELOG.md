@@ -1,7 +1,13 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
-## [0.2.6] 03.04.2023
+## [0.3.0] 06.04.2023
+### Added
+- better logging to avoid repeated similar messages
+- version in the app and in the logs
+
+
+## [0.2.8] 03.04.2023
 ### Added
 - performance test script that generates stats for each file
 - option to load and download ro_legal_fl model
@@ -9,7 +15,7 @@ Adding notes to what is being changed from time to time
 - pipeline fixes
 - stop auto-deploy of API service
 - performance tests with docker-compose.yml
-- pre-commit hooks
+- pre-commit hook configuration
 
 
 ## [0.1.1] 22.03.2023
