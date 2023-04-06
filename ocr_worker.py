@@ -204,8 +204,8 @@ if __name__ == '__main__':
             if input_status in APIStatus.NOT_FOUND:
                 if input_status != last_input_status:
                     LOGGER.info(f"Next document status is {input_status}. Assuming no more documents to process."
-                                f" Next call will take place in {SLEEP_TIME} seconds..."
-                                f" This message will only be logged once.")
+                                f" Polling every {SLEEP_TIME} seconds."
+                                f"\nThis message will only be logged once.")
                 time.sleep(SLEEP_TIME)
             elif input_status in APIStatus.DOWNLOADED:
                 LOGGER.info(f"Got document {document}")
