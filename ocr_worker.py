@@ -40,7 +40,7 @@ DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 
 
 APP_VERSION="0.3.0"
-LOG_CONFIG = f"Worker {WORKER_ID}:{APP_VERSION} " + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
+LOG_CONFIG = f"Work/r/readable/ocr/tagser {WORKER_ID}:{APP_VERSION} " + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
 logging.basicConfig(level="INFO", format=LOG_CONFIG)
 LOGGER = logging.getLogger(__name__)
 
@@ -88,10 +88,11 @@ def get_next_document(not_found=False):
     endpoint = os.path.join(API_ENDPOINT, "next-document")
     if not_found:
         endpoint = endpoint + "?forceStatus=not_found"
-    LOGGER.info(f"Calling endpoint {endpoint}")
+    LOGGER.debug(f"Calling endpoint {endpoint}")
     response = requests.get(endpoint)
-    LOGGER.info(f"Endpoint response {response.text}")
-    return response.json()
+    LOGGER.debug("Endpoint response {response.text}")
+    parsed_response = response.json()
+    return parsed_response
 
 
 def get_next_document_mock(doc_id='38f93d44-1e4e-4c37-9df8-879e2b5993c0', directory='nlp/documents/'):
@@ -210,6 +211,7 @@ if __name__ == '__main__':
                                 f" This message will only be logged once.")
                 time.sleep(SLEEP_TIME)
             elif input_status in APIStatus.DOWNLOADED:
+                LOGGER.info(f"Got document {document}")
                 update_document(job_id, APIStatus.LOCKED, message="Processing...")
                 assert_valid_document(document)
                 update_document(job_id, APIStatus.OCR_INPROGRESS, message="Doing OCR...")
