@@ -39,7 +39,7 @@ SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 
 
-APP_VERSION="0.3.0"
+APP_VERSION="0.3.1"
 LOG_CONFIG = f"Work/r/readable/ocr/tagser {WORKER_ID}:{APP_VERSION} " + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
 logging.basicConfig(level="INFO", format=LOG_CONFIG)
 LOGGER = logging.getLogger(__name__)
@@ -229,7 +229,7 @@ if __name__ == '__main__':
                 if input_status != last_input_status:
                     LOGGER.info(f"Status of '{job_id}' is '{input_status}' (unkown). Assuming no more documents to process."
                                 f" Expected one of these statuses {APIStatus.statuses()}"
-                                f" Next call will take place {6*SLEEP_TIME} seconds...")
+                                f" Next call will take place in {6*SLEEP_TIME} seconds...")
                 time.sleep(SLEEP_TIME)
         except Exception as e:
             message = f"Something went wrong for job id '{job_id}'. "
