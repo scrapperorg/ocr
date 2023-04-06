@@ -129,7 +129,7 @@ def update_document(id, status, message="", analysis={}, raise_failure=True):
             "analysis": analysis
            }
     LOGGER.info(f"Calling endpoint {endpoint}"
-                " Document: '{id}' status: '{status}' message: '{message}'")
+                f" Document: '{id}' status: '{status}' message: '{message}'")
     response = requests.post(endpoint, json=body)
     LOGGER.info(f"Endpoint response {response.text}")
     if raise_failure:
