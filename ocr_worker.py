@@ -95,7 +95,7 @@ def get_next_document(not_found=False):
         endpoint = endpoint + "?forceStatus=not_found"
     response = requests.get(endpoint)
     #response.raise_for_status()
-    LOGGER.info("Endpoint {endpoint} response {response.text}")
+    LOGGER.info(f"Endpoint {endpoint} response {response.text}")
     parsed_response = response.json()
     return parsed_response
 
