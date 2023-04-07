@@ -101,9 +101,7 @@ def raise_for_status(response):
     else:
         reason = response.reason
     if 500 <= response.status_code < 600:
-        http_error_msg = (
-            f"{response.status_code} Server Error: {reason} for url: {response.url}"
-        )
+        http_error_msg = f"{response.status_code} for url: {response.url} Server Error: {reason}: {response.text}"
     if http_error_msg:
         raise requests.HTTPError(http_error_msg, response=response)
 
@@ -115,7 +113,9 @@ def get_next_document(not_found=False):
         endpoint = endpoint + "?forceStatus=not_found"
     response = requests.get(endpoint)
     raise_for_status(response)
-    LOGGER.debug(f"Endpoint {endpoint} response {response.text} status {response.status_code}")
+    LOGGER.debug(
+        f"Endpoint {endpoint} response {response.text} status {response.status_code}"
+    )
     parsed_response = response.json()
     return parsed_response
 
