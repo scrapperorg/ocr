@@ -163,7 +163,7 @@ def update_document(id, status, message="", analysis={}, raise_failure=True):
         f" Document: '{id}' status: '{status}' message: '{message}'"
     )
     response = requests.post(endpoint, json=body)
-    LOGGER.info(f"Endpoint response {response.text}")
+    LOGGER.info(f"Endpoint response {response.text} status {response.status_code}")
     if raise_failure:
         response.raise_for_status()
 
