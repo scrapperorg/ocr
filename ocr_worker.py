@@ -93,10 +93,9 @@ def get_next_document(not_found=False):
     endpoint = os.path.join(API_ENDPOINT, "next-document")
     if not_found:
         endpoint = endpoint + "?forceStatus=not_found"
-    LOGGER.debug(f"Calling endpoint {endpoint}")
     response = requests.get(endpoint)
-    response.raise_for_status()
-    LOGGER.debug("Endpoint response {response.text}")
+    #response.raise_for_status()
+    LOGGER.info("Endpoint {endpoint} response {response.text}")
     parsed_response = response.json()
     return parsed_response
 
