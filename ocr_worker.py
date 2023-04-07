@@ -37,7 +37,7 @@ API_ENDPOINT = os.environ.get("API_ENDPOINT", API_URL)
 OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "nlp/documents/analysis")
 SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
-LOG_LEVEL = bool(os.environ.get("LOG_LEVEL", "INFO"))
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 
 APP_VERSION = "0.3.5"
 
