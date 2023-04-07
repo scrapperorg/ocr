@@ -39,6 +39,14 @@ SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 
 
+APP_VERSION = "0.3.2"
+
+LOG_CONFIG = (
+    f"Worker {WORKER_ID}:{APP_VERSION}: "
+    + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
+)
+logging.basicConfig(level="INFO", format=LOG_CONFIG)
+
 LOGGER = logging.getLogger(__name__)
 
 # hack because subprocess does not inherit PATH env variable from virtual env
