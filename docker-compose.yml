@@ -13,6 +13,7 @@ services:
             - API_ENDPOINT=http://api:8081
             - OUTPUT_PATH=/opt/storage/analysis
             - SLEEP_TIME=10
+            - LOG_LEVEL=INFO
         volumes:
             - /opt/storage:/opt/storage
         tty: true
