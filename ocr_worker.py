@@ -39,7 +39,7 @@ SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 LOG_LEVEL = bool(os.environ.get("LOG_LEVEL", "INFO"))
 
-APP_VERSION = "0.3.4"
+APP_VERSION = "0.3.5"
 
 LOG_CONFIG = (
     f"Worker {WORKER_ID}:{APP_VERSION}: "
