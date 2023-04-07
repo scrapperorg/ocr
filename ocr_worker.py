@@ -39,7 +39,7 @@ SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 
 
-APP_VERSION = "0.3.2"
+APP_VERSION = "0.3.3"
 
 LOG_CONFIG = (
     f"Worker {WORKER_ID}:{APP_VERSION}: "
@@ -95,6 +95,7 @@ def get_next_document(not_found=False):
         endpoint = endpoint + "?forceStatus=not_found"
     LOGGER.debug(f"Calling endpoint {endpoint}")
     response = requests.get(endpoint)
+    response.raise_for_status()
     LOGGER.debug("Endpoint response {response.text}")
     parsed_response = response.json()
     return parsed_response
