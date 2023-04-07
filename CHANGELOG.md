@@ -1,11 +1,13 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
-## [0.3.0] 06.04.2023
+## [0.3.5] 07.04.2023
 ### Added
 - better logging to avoid repeated similar messages
 - version in the app and in the logs
-
+- LOG_LEVEL variable in the environment
+- separated github build and push and deploy workflows
+- raise for error when server errors occur [500 - 600]
 
 ## [0.2.8] 03.04.2023
 ### Added
