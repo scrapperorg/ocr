@@ -39,10 +39,10 @@ SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 
-APP_VERSION = "0.3.5"
+APP_VERSION = "0.4.0"
 
 LOG_CONFIG = (
-    f"Worker {WORKER_ID}:{APP_VERSION}: "
+    f"Worker {WORKER_ID} : {APP_VERSION}: "
     + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
 )
 logging.basicConfig(level=LOG_LEVEL, format=LOG_CONFIG)
@@ -127,14 +127,15 @@ def get_next_document_mock(
     # doc_id = '3b4d634d-8616-4809-9c68-2e2c923d1e1a'
     # doc_id = 'encrypt'
     # doc_id = 'empty'
+    doc_id = "digitally_signed"
     in_str = """{{
     "id":	"{doc_id}",
     "storagePath":	"{directory}/{doc_id}.pdf",
-    "status": "not_found"
+    "status": "downloaded"
     }}""".format(
         doc_id=doc_id, directory=directory
     )
-    retval = json.loads(in_str)  # "downloaded"
+    retval = json.loads(in_str)
     return retval
 
 
@@ -178,11 +179,16 @@ def update_document_mock(id, status, message="", analysis={}, raise_failure=True
         "analysis": analysis,
     }
     LOGGER.info(f"Calling endpoint {endpoint} with body {body}")
-    LOGGER.info(f"Raises failure")
 
 
-def assert_valid_document(document):
-    assert_path_exists(document["storagePath"])
+def validate_document(document):
+    doc_path = document["storagePath"]
+    assert_path_exists(doc_path)
+    if ocr_service.is_pdf_encrypted(doc_path):
+        LOGGER.info(
+            f"{doc_path} is encrypted, digitially signed or password protected; atempting to clean..."
+        )
+        ocr_service.remove_encryption(doc_path)
 
 
 def process(document, output_path, dump_text=False):
@@ -271,9 +277,9 @@ if __name__ == "__main__":
             elif input_status in APIStatus.DOWNLOADED:
                 LOGGER.info(f"Got document {document}")
                 update_document(job_id, APIStatus.LOCKED, message="Processing...")
-                assert_valid_document(document)
+                validate_document(document)
                 update_document(
-                    job_id, APIStatus.OCR_INPROGRESS, message="Doing OCR..."
+                    job_id, APIStatus.OCR_INPROGRESS, message="Doing AI analysis..."
                 )
                 analysis = process(document, OUTPUT_PATH)
                 LOGGER.info(

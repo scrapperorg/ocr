@@ -1,6 +1,11 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
+## [0.4.0] 07.04.2023
+### Added
+- safety feature for encrypted or digitally signed pdfs
+- attempts to overwrite the original file, if encrypted
+
 ## [0.3.5] 07.04.2023
 ### Added
 - better logging to avoid repeated similar messages

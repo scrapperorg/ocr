@@ -3,6 +3,7 @@ import os
 from subprocess import run
 
 import fitz
+import pikepdf
 from ocrmypdf.__main__ import run as run_ocrmypdf
 from ocrmypdf._exec import tesseract
 
@@ -32,6 +33,26 @@ CMD_ARGS = ["--skip-text", "-l", LANGUAGE] + USER_WORDS
 # then we try again with --output-type pdf
 FAIL_SAFE_ARGS = ["--output-type", "pdf"]
 OCRMYPDF = "ocrmypdf"
+
+
+def is_pdf_encrypted(pdf_file_path: str) -> bool:
+    with fitz.Document(pdf_file_path) as doc:
+        if doc.needs_pass or doc.metadata is None or doc.is_encrypted:
+            return True
+        if doc.metadata is not None and doc.metadata.get("encryption", ""):
+            return True
+    return False
+
+
+def remove_encryption(pdf_file_path: str):
+    """Removes encryption by resaving the document
+
+    Args:
+        pdf_file_path (str): pdf file path
+    """
+    LOGGER.info(f"Saving unencrypted document: {pdf_file_path}")
+    with pikepdf.open(pdf_file_path, allow_overwriting_input=True) as doc:
+        doc.save(pdf_file_path)
 
 
 def run_ocr(in_file, pdf_output):
