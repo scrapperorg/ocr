@@ -1,5 +1,5 @@
 import os
-from ocr_worker import process, get_next_document_mock, safe_make_dirs, dump_json
+from ocr_worker import process, validate_document, get_next_document_mock, safe_make_dirs, dump_json
 
 DOC_DIR = 'nlp/documents/'
 
@@ -16,6 +16,7 @@ def test_process_entire_dir():
         safe_make_dirs(output_dir)
         document = get_next_document_mock(doc_id, DOC_DIR)
         try:
+            validate_document(document)
             analysis = process(document, output_dir)
             dump_json(analysis, output_dir)
         except Exception as e:

@@ -1,20 +1,4 @@
-'''
-GET http://3.229.101.152:8081/next-document
-Este folosit sa returneze urmatorul document pentru procesare. Optional poate primi query param forceStatus=not_found ca sa simuleze situatia cand nu mai e nici un fisier de procesat
-retval = json.loads("""{
-    "id":	"3b4d634d-8616-4809-9c68-2e2c923d1e1a",
-    "storagePath":	"/opt/storage/3b4d634d-8616-4809-9c68-2e2c923d1e1a.pdf",
-    "status":	"downloaded",
-    "force": True
-}""")
-
-GET http://3.229.101.152:8081/document/3b4d634d-8616-4809-9c68-2e2c923d1e1a
-Returneaza aceleasi info ca next-document doar ca aici sunt cerute specifice pentru un document, folositor daca vrei sa citesti status-ul curent la un momentdat
-
-POST http://3.229.101.152:8081/ocr-updates
-Body: { id, status } unde id este id-ul documentului si status este una din valorile astea: 'downloaded', 'locked', 'ocr_in_progress', 'ocr_done'
-
-'''
+'''AI analysis worker'''
 import os
 import logging
 import requests
@@ -38,8 +22,10 @@ OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "nlp/documents/analysis")
 SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+MAX_NUM_PAGES = int(os.environ.get("MAX_NUM_PAGES", 75600))
 
-APP_VERSION = "0.4.0"
+
+APP_VERSION = "0.5.1"
 
 LOG_CONFIG = (
     f"Worker {WORKER_ID} : {APP_VERSION}: "
@@ -127,7 +113,7 @@ def get_next_document_mock(
     # doc_id = '3b4d634d-8616-4809-9c68-2e2c923d1e1a'
     # doc_id = 'encrypt'
     # doc_id = 'empty'
-    doc_id = "digitally_signed"
+    # doc_id = "digitally_signed"
     in_str = """{{
     "id":	"{doc_id}",
     "storagePath":	"{directory}/{doc_id}.pdf",
@@ -181,9 +167,18 @@ def update_document_mock(id, status, message="", analysis={}, raise_failure=True
     LOGGER.info(f"Calling endpoint {endpoint} with body {body}")
 
 
+def assert_doc_length(doc_path):
+    doc_length = ocr_service.get_document_length(doc_path)
+    if doc_length > MAX_NUM_PAGES:
+        raise ValueError(
+            f"Document {doc_path} is too long ({doc_length} pages), max length is {MAX_NUM_PAGES} pages."
+        )
+
+
 def validate_document(document):
     doc_path = document["storagePath"]
     assert_path_exists(doc_path)
+    assert_doc_length(doc_path)
     if ocr_service.is_pdf_encrypted(doc_path):
         LOGGER.info(
             f"{doc_path} is encrypted, digitially signed or password protected; atempting to clean..."

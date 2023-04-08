@@ -3,11 +3,15 @@ import os
 import logging
 import json
 import numpy as np
-from ocr_worker import process, get_next_document_mock, safe_make_dirs, dump_json
+from ocr_worker import (process,
+                        validate_document,
+                        get_next_document_mock,
+                        safe_make_dirs,
+                        dump_json,
+                        APP_VERSION,
+                        )
 
 
-LOG_CONFIG = "Perf. test [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
-logging.basicConfig(level="INFO", format=LOG_CONFIG)
 LOGGER = logging.getLogger(__name__)
 
 
@@ -31,7 +35,7 @@ def folders_in_folder(mypath):
     )
 
 
-def run_performance_test(input_dir, out_dir, analysis_file='perf_analysis.jsonl'):
+def run_performance_test(input_dir, out_dir, analysis_file=f'perf_analysis_default_.jsonl'):
     """Path to downloaded dirs with docs"""
     item = {}
     safe_make_dirs(out_dir)
@@ -52,6 +56,7 @@ def run_performance_test(input_dir, out_dir, analysis_file='perf_analysis.jsonl'
                 doc_id = os.path.basename(pdf_file).replace(".pdf", "")
                 document = get_next_document_mock(doc_id, law_dir)
                 try:
+                    validate_document(document)
                     analysis = process(document, out_law_dir, dump_text=True)
                     dump_json(analysis, out_law_dir)
                     item["corpus"] = os.path.basename(corpus)
@@ -83,4 +88,4 @@ def test_performance():
 
 
 if __name__ == "__main__":
-    run_performance_test(input_dir=sys.argv[1], out_dir=sys.argv[2])
+    run_performance_test(input_dir=sys.argv[1], out_dir=sys.argv[2], analysis_file=f'perf_analysis_{APP_VERSION}_.jsonl')

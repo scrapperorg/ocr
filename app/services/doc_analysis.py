@@ -180,7 +180,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
                 num_kwds += 1
                 string_id = NLP.vocab.strings[match_id]
                 span = doc[start:end]
-                LOGGER.debug(match_id, string_id, start, end, span.text)
+                LOGGER.debug(f"{match_id}, {string_id}, {start}, {end}, {span.text}")
                 indecsi = sum(spc2pdf[start:end], [])
                 pozitii = [fitz.Rect(word_coordinates[idx][0:4]) for idx in indecsi]
                 if pozitii:
@@ -209,7 +209,9 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
                     continue
                 num_ents += 1
                 string_id = entity.text
-                LOGGER.debug(string_id, entity.start, entity.end, entity.text)
+                LOGGER.debug(
+                    f"{string_id}, {entity.start}, {entity.end}, {entity.text}"
+                )
                 indecsi = sum(spc2pdf[entity.start : entity.end], [])
                 pozitii = [fitz.Rect(word_coordinates[idx][0:4]) for idx in indecsi]
                 if pozitii:

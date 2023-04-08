@@ -1,6 +1,17 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
+## [0.5.1] 08.04.2023
+### Added
+- number of jobs fixed to environment variable (default 1)
+- introduced auto-rotate for documents
+- increased tesseract timeout per page
+- generate PDF instead of PDF/A for docs larger than 50 pages
+- added option to limit the total number of pages to do OCR
+- added CPU and memory limitation to container in docker-compose.yml
+- simplified function to set ocrmypdf parameters
+- validate document in performance testing
+
 ## [0.4.0] 07.04.2023
 ### Added
 - safety feature for encrypted or digitally signed pdfs

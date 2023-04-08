@@ -9,6 +9,12 @@ from ocrmypdf._exec import tesseract
 
 LEGAL_LANG = "ro_legal"
 BACK_LANG = "ron"
+# number of parallel processes to use for OCR
+NUM_PROC = str(os.environ.get("NUM_PROC", 1))
+
+# maximum number of pages to convert to PDF/A
+# otherwise output type is PDF
+MAX_PAGE_PDF_A = 50
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,10 +34,23 @@ if os.path.exists(WORD_LIST):
     USER_WORDS = ["--user-words", WORD_LIST]
 
 
-CMD_ARGS = ["--skip-text", "-l", LANGUAGE] + USER_WORDS
+CMD_ARGS = [
+    "--skip-text",
+    "--rotate-pages",
+    "--language",
+    LANGUAGE,
+    "--jobs",
+    str(NUM_PROC),
+    "--tesseract-timeout",
+    "600",
+] + USER_WORDS
 # some PDF files might not be convertible to PDF/A
 # then we try again with --output-type pdf
+# for efficiency reasons, large files
+# should not be converted because it takes too long
 FAIL_SAFE_ARGS = ["--output-type", "pdf"]
+CMD_ARGS.extend(["-v", "2"])
+
 OCRMYPDF = "ocrmypdf"
 
 
@@ -42,6 +61,11 @@ def is_pdf_encrypted(pdf_file_path: str) -> bool:
         if doc.metadata is not None and doc.metadata.get("encryption", ""):
             return True
     return False
+
+
+def count_pages(pdf_file_path: str) -> int:
+    with fitz.Document(pdf_file_path) as doc:
+        return doc.page_count
 
 
 def remove_encryption(pdf_file_path: str):
@@ -55,31 +79,29 @@ def remove_encryption(pdf_file_path: str):
         doc.save(pdf_file_path)
 
 
-def run_ocr(in_file, pdf_output):
-    ocrmypdf_args = [*CMD_ARGS, in_file, pdf_output]
-    exit_code = run_ocrmypdf(ocrmypdf_args)
-    if exit_code != 0:
-        LOGGER.info("OCR failed, trying again with --output-type pdf")
-        ocrmypdf_args = [*FAIL_SAFE_ARGS, *CMD_ARGS, in_file, pdf_output]
-        exit_code = run_ocrmypdf(ocrmypdf_args)
-        if exit_code != 0:
-            LOGGER.error("some error")
+def make_ocr_command(in_file, pdf_output, pdf_a=True):
+    ocrmypdf_args = [OCRMYPDF, in_file, pdf_output, *CMD_ARGS]
+    large_page_count = count_pages(in_file) > MAX_PAGE_PDF_A
+    if pdf_a is False or large_page_count:
+        ocrmypdf_args = [OCRMYPDF, in_file, pdf_output, *FAIL_SAFE_ARGS, *CMD_ARGS]
+    LOGGER.debug(" ".join(ocrmypdf_args))
+    return ocrmypdf_args, large_page_count
+
+
+def run_ocr_natively(in_file, pdf_output):
+    ocrmypdf_args, _ = make_ocr_command(in_file, pdf_output, pdf_a=False)
+    status_code = run_ocrmypdf(ocrmypdf_args)
+    if status_code != 0:
+        raise Exception("Failed to do OCR.")
 
 
 def call_ocr(in_file, pdf_output):
-    ocrmypdf_args = [OCRMYPDF, "-v", *CMD_ARGS, in_file, pdf_output]
+    ocrmypdf_args, _ = make_ocr_command(in_file, pdf_output, pdf_a=False)
     proc = run(ocrmypdf_args, capture_output=True, encoding="utf-8")
     if proc.returncode != 0:
-        LOGGER.info(
-            "Input file could not be converted to PDF/A and OCR must be done again..."
-        )
-        ocrmypdf_args = [OCRMYPDF, *FAIL_SAFE_ARGS, *CMD_ARGS, in_file, pdf_output]
-        proc = run(ocrmypdf_args, capture_output=True, encoding="utf-8")
-        if proc.returncode != 0:
-            LOGGER.error(proc.stderr)
-            raise Exception(proc.stderr)
-    LOGGER.debug(proc.stdout)
-    LOGGER.debug(proc.stderr)
+        LOGGER.error(proc.stdout)
+        LOGGER.error(proc.stderr)
+        raise Exception(proc.stderr)
     return proc.stdout, proc.stderr
 
 

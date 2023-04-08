@@ -70,7 +70,7 @@ RUN apt-get update && apt-get install -y git curl wget
 
 RUN git clone  https://github.com/ocrmypdf/OCRmyPDF
 WORKDIR OCRmyPDF
-RUN pip3 install --no-cache-dir .[test,webservice,watcher]
+RUN pip3 install --no-cache-dir .[test]
 
 
 # RUN useradd -ms /bin/bash worker
