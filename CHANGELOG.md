@@ -1,7 +1,7 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
-## [0.5.1] 08.04.2023
+## [0.5.2] 08.04.2023
 ### Added
 - number of jobs fixed to environment variable (default 1)
 - introduced auto-rotate for documents
@@ -11,6 +11,8 @@ Adding notes to what is being changed from time to time
 - added CPU and memory limitation to container in docker-compose.yml
 - simplified function to set ocrmypdf parameters
 - validate document in performance testing
+- raw tests on several types of files
+- fixed bug when generated PDF was not valid (strange_error.pdf)
 
 ## [0.4.0] 07.04.2023
 ### Added

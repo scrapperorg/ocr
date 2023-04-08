@@ -25,7 +25,7 @@ LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 MAX_NUM_PAGES = int(os.environ.get("MAX_NUM_PAGES", 75600))
 
 
-APP_VERSION = "0.5.1"
+APP_VERSION = "0.5.2"
 
 LOG_CONFIG = (
     f"Worker {WORKER_ID} : {APP_VERSION}: "
@@ -169,7 +169,7 @@ def update_document_mock(id, status, message="", analysis={}, raise_failure=True
 
 
 def assert_doc_length(doc_path):
-    doc_length = ocr_service.get_document_length(doc_path)
+    doc_length = ocr_service.count_pages(doc_path)
     if doc_length > MAX_NUM_PAGES:
         raise ValueError(
             f"Document {doc_path} is too long ({doc_length} pages), max length is {MAX_NUM_PAGES} pages."
@@ -179,6 +179,7 @@ def assert_doc_length(doc_path):
 def validate_document(document):
     doc_path = document["storagePath"]
     assert_path_exists(doc_path)
+    assert ocr_service.is_pdf_valid(doc_path)
     assert_doc_length(doc_path)
     if ocr_service.is_pdf_encrypted(doc_path):
         LOGGER.info(

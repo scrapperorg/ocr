@@ -54,6 +54,17 @@ CMD_ARGS.extend(["-v", "2"])
 OCRMYPDF = "ocrmypdf"
 
 
+def is_pdf_valid(input_file: str) -> bool:
+    """Check if a PDF is valid."""
+    try:
+        with pikepdf.open(input_file) as _:
+            pass
+    except pikepdf.PdfError:
+        LOGGER.exception(f"Invalid PDF: {input_file}")
+        return False  # invalid PDF
+    return True
+
+
 def is_pdf_encrypted(pdf_file_path: str) -> bool:
     with fitz.Document(pdf_file_path) as doc:
         if doc.needs_pass or doc.metadata is None or doc.is_encrypted:
@@ -101,7 +112,10 @@ def call_ocr(in_file, pdf_output):
     if proc.returncode != 0:
         LOGGER.error(proc.stdout)
         LOGGER.error(proc.stderr)
-        raise Exception(proc.stderr)
+        # sometimes the PDF is not entirely valid according to the spec
+        # but the generated PDF can still be used and rendered
+        if not is_pdf_valid(pdf_output):
+            raise Exception(proc.stderr)
     return proc.stdout, proc.stderr
 
 
