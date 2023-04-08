@@ -145,9 +145,10 @@ def update_document(id, status, message="", analysis={}, raise_failure=True):
         "message": message,
         "analysis": analysis,
     }
+    stats = analysis.get(ResponseField.STATISTICS, {})
     LOGGER.info(
         f"Calling endpoint {endpoint}"
-        f" Document: '{id}' status: '{status}' message: '{message}'"
+        f" Document: '{id}' status: '{status}' message: '{message}' stats: '{stats}'"
     )
     response = requests.post(endpoint, json=body)
     LOGGER.info(f"Endpoint response {response.text} status {response.status_code}")
