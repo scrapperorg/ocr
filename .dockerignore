@@ -144,3 +144,7 @@ nlp/resources/tessdata.tar.gz
 nlp/resources/ro_vocabulary.tar.gz
 nlp/resources/ro_vocabulary.txt
 nlp/corpus
+nlp/documents/digitally_signed/
+nlp/documents/normal/
+nlp/documents/rotated/
+nlp/documents/strange_error/
