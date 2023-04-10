@@ -59,22 +59,23 @@ def wer(text):
     tokenized_text = nltk.word_tokenize(text.lower())
     # tokenized_text = re.split(r'[^a-zăâîșşțţ\-]+', text.lower())
     correct_words = 0
+    incorrect_words = set()
     all_words = 1
     for word in tokenized_text:
         normalized_word = normalize_word(word)
         if not normalized_word or re.fullmatch(r"[^a-z]+", normalized_word):
             continue
-        if normalized_word in VOCABULARY_WORDS:
+        if normalized_word in VOCABULARY_WORDS or word in VOCABULARY_WORDS:
             correct_words += 1
         else:
-            LOGGER.debug(
-                f'[WER] Incorrect word: "{word}" (normalized as "{normalized_word}")'
-            )
+            incorrect_words.add(word)
         all_words += 1
     if all_words == 0:
         LOGGER.warning("[WER] No words found in text.")
         return 0
     LOGGER.info(f"[WER] WER={correct_words / all_words * 100}%")
+    LOGGER.debug(f"[WER] Incorrect words: {incorrect_words})")
+
     return correct_words / all_words
 
 

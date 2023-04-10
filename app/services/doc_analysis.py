@@ -7,6 +7,7 @@ import fitz
 import spacy
 import spacy_alignments as tokenizations
 from spacy.matcher import PhraseMatcher
+from spacy.util import filter_spans
 
 from app.services.ocr_evaluation import normalize_word
 from app.utils.file_util import read_text_file
@@ -38,9 +39,12 @@ LOGGER.info(f"Loaded model {MODEL_NAME}.")
 
 KEYWORDS = load_keywords()
 KEYWORDS_AS_DOCS = list(NLP.pipe(KEYWORDS))
-MATCHER = PhraseMatcher(NLP.vocab, attr="LEMMA")
+LEMMA_MATCHER = PhraseMatcher(NLP.vocab, attr="LEMMA")
 for kw in KEYWORDS_AS_DOCS:
-    MATCHER.add(kw.text, None, kw)
+    LEMMA_MATCHER.add(kw.text, None, kw)
+ORTH_MATCHER = PhraseMatcher(NLP.vocab, attr="LOWER")
+for kw in KEYWORDS_AS_DOCS:
+    ORTH_MATCHER.add(kw.text, None, kw)
 
 
 def highlight_keywords_semantic(input_pdf_path, output_pdf_path):
@@ -158,6 +162,13 @@ def filter_matches(matches):
     return result
 
 
+def do_matching(doc):
+    matches = LEMMA_MATCHER(doc, as_spans=True)
+    matches.extend(ORTH_MATCHER(doc, as_spans=True))
+    matches = filter_spans(matches)
+    return matches
+
+
 def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
     highlight_meta_results = defaultdict(list)
     statistics = {}
@@ -174,14 +185,14 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
             num_wds += len(doc)
             tokens_spc = [t.text for t in doc]
             pdf2spc, spc2pdf = tokenizations.get_alignments(tokens_pdf, tokens_spc)
-            matches = MATCHER(doc)
-            matches = filter_matches(matches)
-            for match_id, start, end in matches:
+            matches = do_matching(doc)
+            for entity in matches:
                 num_kwds += 1
-                string_id = NLP.vocab.strings[match_id]
-                span = doc[start:end]
-                LOGGER.debug(f"{match_id}, {string_id}, {start}, {end}, {span.text}")
-                indecsi = sum(spc2pdf[start:end], [])
+                string_id = entity.label_
+                LOGGER.debug(
+                    f"{string_id}, {entity.start}, {entity.end}, {entity.text}"
+                )
+                indecsi = sum(spc2pdf[entity.start : entity.end], [])
                 pozitii = [fitz.Rect(word_coordinates[idx][0:4]) for idx in indecsi]
                 if pozitii:
                     area = pozitii[0]

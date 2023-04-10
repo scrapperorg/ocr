@@ -1,6 +1,17 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
+## [0.5.3] 10.04.2023
+### Added
+- improved matching to use both lemma and lowercase form of words
+- enabled by default option to dump text file
+- option to dump json for statistics and debugging
+- more test cases for a PDF containing all keywords
+- improved robustness to rotated pages
+- if quality below a threshold, attempts again with more aggressive rotation
+- changed logging for OOV words in quality estimation
+
+
 ## [0.5.2] 08.04.2023
 ### Added
 - number of jobs fixed to environment variable (default 1)

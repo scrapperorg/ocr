@@ -148,3 +148,6 @@ nlp/documents/digitally_signed/
 nlp/documents/normal/
 nlp/documents/rotated/
 nlp/documents/strange_error/
+nlp/documents/heavily_rotated/
+nlp/documents/keywords/
+nlp/documents/kwds/

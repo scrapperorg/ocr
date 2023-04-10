@@ -7,7 +7,6 @@ from ocr_worker import (process,
                         validate_document,
                         get_next_document_mock,
                         safe_make_dirs,
-                        dump_json,
                         APP_VERSION,
                         )
 
@@ -57,8 +56,7 @@ def run_performance_test(input_dir, out_dir, analysis_file=f'perf_analysis_defau
                 document = get_next_document_mock(doc_id, law_dir)
                 try:
                     validate_document(document)
-                    analysis = process(document, out_law_dir, dump_text=True)
-                    dump_json(analysis, out_law_dir)
+                    analysis = process(document, out_law_dir, dump_text=True, dump_json=True)
                     item["corpus"] = os.path.basename(corpus)
                     item["law"] = law
                     item["doc_id"] = doc_id

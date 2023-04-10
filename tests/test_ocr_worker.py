@@ -1,7 +1,10 @@
 import os
 import logging
 import pytest
-from ocr_worker import process, validate_document, get_next_document_mock, safe_make_dirs, dump_json
+from ocr_worker import (process,
+                        validate_document,
+                        get_next_document_mock,
+                        safe_make_dirs, )
 
 DOC_DIR = 'nlp/documents/'
 
@@ -35,13 +38,23 @@ def pipeline(fis_name):
     safe_make_dirs(output_dir)
     document = get_next_document_mock(doc_id, DOC_DIR)
     validate_document(document)
-    analysis = process(document, output_dir)
-    dump_json(analysis, output_dir)
+    analysis = process(document, output_dir, dump_text=True, dump_json=True)
     return analysis
 
 
 def test_normal_pdf():
     analysis = pipeline('normal.pdf')
+    LOGGER.info(analysis['statistics'])
+
+
+def test_naturally_occuring_kwds_pdf():
+    analysis = pipeline('kwds.pdf')
+    LOGGER.info(analysis['statistics'])
+
+
+def test_keywords_list_pdf():
+    analysis = pipeline('keywords.pdf')
+    assert analysis['statistics']['num_kwds'] == 365
     LOGGER.info(analysis['statistics'])
 
 
@@ -58,8 +71,14 @@ def test_strange_pdf(caplog):
 
 
 def test_rotated_pdf():
-    analysis = pipeline("rotated.pdf")
+    analysis = pipeline("rotated.pdf")  # "rotated.pdf")
     assert analysis['ocr_quality'] > 90
+
+
+def test_heavily_rotated_pdf(caplog):
+    analysis = pipeline("heavily_rotated.pdf")  # "rotated.pdf")
+    assert analysis['ocr_quality'] > 90
+    assert "Forcing page rotation" in caplog.text
 
 
 def test_digitally_signed_pdf():

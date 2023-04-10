@@ -1,5 +1,8 @@
 # OCR service
 
+## Contents
+- [JSON Response](#response)
+
 ## Running as a docker container
 
 ### Pre-requisites
@@ -15,6 +18,16 @@ A path that is accessible by the worker to be used to write the output PDF files
 
 ##### SLEEP_TIME=10
 This is the amount of seconds to sleep when encountering an error or when no more documents are left to be processed.
+
+##### LOG_LEVEL=INFO
+Log level, recommended to be INFO
+
+##### MAX_NUM_PAGES=2000
+Maximum document length to process. Otherwise will return failure. This is more of a safety parameter to avoid ingesting documents if very large sizes. If not set, by default is `75600` the time to process a document for one week `75600*8 / 60/60/24` with one CPU (8 seconds per page).
+
+##### NUM_PROC=1
+Number of parallel processes to run jobs on. If the container has more than one CPU available, this could drastically increase performance.
+
 
 ##### API_ENDPOINT=http://{}
 Represents the endpoint that feeds the worker with documents.
@@ -32,6 +45,8 @@ The HTTP server must implement two endpoints `/next-document` to return a docume
 And `/ocr-updates` where the worker will post the results of the document processing.
 An example body response is here:
 
+<a name="response"></a>
+
 <details>
 <summary><i>Show json response</i></summary>
 
@@ -41,58 +56,70 @@ An example body response is here:
     "id": "3b4d634d-8616-4809-9c68-2e2c923d1e1a",
     "status": "ocr_done",
     "message": "",
-    "analysis": {
-        "input_status": "downloaded",
-        "input_file": "nlp/documents/3b4d634d-8616-4809-9c68-2e2c923d1e1a.pdf",
-        "ocr_file": "nlp/documents/analysis/3b4d634d-8616-4809-9c68-2e2c923d1e1a_ocr.pdf",
-        "text": "...",
-        "ocr_quality": 95.63,
-        "highlight_file": "nlp/documents/analysis/3b4d634d-8616-4809-9c68-2e2c923d1e1a_highlight.pdf",
-        "highlight_metadata": [
+    "analysis":
             {
-                "keyword": "Guvern",
-                "occs": [
-                    {
-                        "page": 0,
-                        "location": {
-                            "x1": 373.2699890136719,
-                            "x2": 398.5975036621094,
-                            "y1": 157.97280883789062,
-                            "y2": 166.973388671875
+            "worker_version": "0.5.2",
+            "input_file": "nlp/documents//normal.pdf",
+            "ocr_file": "nlp/documents/normal/normal_ocr.pdf",
+            "ocr_quality": 96.25,
+            "text_file": "nlp/documents/normal/normal_ocr.txt",
+            "text": "..(to be deprecated)..",
+            "statistics": {
+                "num_pages": 3,
+                "num_ents": 0,
+                "num_kwds": 3,
+                "num_wds": 988
+            },
+            "highlight_file": "nlp/documents/normal/normal_highlight.pdf",
+            "highlight_metadata": [
+                {
+                    "keyword": "proiect",
+                    "occs": [
+                        {
+                            "page": 0,
+                            "location": {
+                                "x1": 366.0708923339844,
+                                "x2": 394.4169921875,
+                                "y1": 641.0471801757812,
+                                "y2": 652.0478515625
+                            }
                         }
-                    },
-                    {
-                        "page": 0,
-                        "location": {
-                            "x1": 389.4679870605469,
-                            "x2": 425.0047302246094,
-                            "y1": 262.2874755859375,
-                            "y2": 275.288330078125
+                    ],
+                    "total_occs": 1
+                },
+                {
+                    "keyword": "termen",
+                    "occs": [
+                        {
+                            "page": 2,
+                            "location": {
+                                "x1": 379.7745361328125,
+                                "x2": 406.9278259277344,
+                                "y1": 114.33213806152344,
+                                "y2": 125.33673095703125
+                            }
                         }
-                    },
-                    {
-                        "page": 0,
-                        "location": {
-                            "x1": 463.6180114746094,
-                            "x2": 491.4978332519531,
-                            "y1": 438.09368896484375,
-                            "y2": 449.0943603515625
+                    ],
+                    "total_occs": 1
+                },
+                {
+                    "keyword": "produse",
+                    "occs": [
+                        {
+                            "page": 2,
+                            "location": {
+                                "x1": 151.5498809814453,
+                                "x2": 183.67770385742188,
+                                "y1": 214.6649169921875,
+                                "y2": 226.669921875
+                            }
                         }
-                    },
-                    {
-                        "page": 1,
-                        "location": {
-                            "x1": 340.6679992675781,
-                            "x2": 369.3157653808594,
-                            "y1": 737.9363403320312,
-                            "y2": 749.9359741210938
-                        }
-                    }
-                ],
-                "total_occs": 4
-            }
-        ]
-    }
+                    ],
+                    "total_occs": 1
+                }
+            ],
+            "processing_time": 7.217
+        }
 }
 ```
 </details>

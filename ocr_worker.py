@@ -23,9 +23,9 @@ SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
 DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 MAX_NUM_PAGES = int(os.environ.get("MAX_NUM_PAGES", 75600))
+MIN_QUALITY = 77.
 
-
-APP_VERSION = "0.5.2"
+APP_VERSION = "0.5.3"
 
 LOG_CONFIG = (
     f"Worker {WORKER_ID} : {APP_VERSION}: "
@@ -188,7 +188,7 @@ def validate_document(document):
         ocr_service.remove_encryption(doc_path)
 
 
-def process(document, output_path, dump_text=False):
+def process(document, output_path, dump_text=False, dump_json=False):
     start_time = time.time()
     js_content = {ResponseField.IN_STATUS: document["status"]}
     js_content = {ResponseField.WK_VERSION: APP_VERSION}
@@ -201,19 +201,32 @@ def process(document, output_path, dump_text=False):
     anl_output = make_derived_file_name(
         input_file, new_path=output_path, new_extension="pdf", new_suffix="highlight"
     )
-    ocr_service.call_ocr(input_file, ocr_output)
+    ocr_service.call_ocr(input_file, ocr_output, force_rotate=False)
     # TODO: call this instead of the cli
     # ocr_service.run_ocr(input_file, ocr_output)
     assert_path_exists(ocr_output)
     js_content[ResponseField.OCR] = ocr_output
     text = ocr_service.get_ocrized_text_from_blocks(ocr_output)
     js_content[ResponseField.TEXT] = text
+    js_content[ResponseField.QUALITY] = ocr_evaluation.estimate_quality(text)
+    if js_content[ResponseField.QUALITY] < MIN_QUALITY:
+        LOGGER.info(f"Quality of {ocr_output} is too low. Forcing page rotation and doing again...")
+        ocr_service.call_ocr(input_file, ocr_output, force_rotate=True)
+        assert_path_exists(ocr_output)
+        js_content[ResponseField.OCR] = ocr_output
+        text = ocr_service.get_ocrized_text_from_blocks(ocr_output)
+        js_content[ResponseField.TEXT] = text
+        js_content[ResponseField.QUALITY] = ocr_evaluation.estimate_quality(text)
+
+    text_file = 'not_dumped'
     if dump_text is True:
         text_file = make_derived_file_name(
             input_file, new_path=output_path, new_extension="txt", new_suffix="ocr"
         )
         ocr_service.dump_text(text, text_file)
-    js_content[ResponseField.QUALITY] = ocr_evaluation.estimate_quality(text)
+        assert_path_exists(text_file)
+    js_content[ResponseField.TEXT_FILE] = text_file
+
     highlight_meta_js, statistics = doc_analysis.highlight_keywords(
         ocr_output, anl_output
     )
@@ -223,6 +236,12 @@ def process(document, output_path, dump_text=False):
     js_content[ResponseField.ANALYSIS_META] = highlight_meta_js
     time_duration = round(time.time() - start_time, 3)
     js_content[ResponseField.TIME] = time_duration
+    if dump_json is True:
+        json_file = make_derived_file_name(
+            input_file, new_path=output_path, new_extension="json", new_suffix="stats"
+        )
+        dump_json_to_path(js_content, json_file)
+        assert_path_exists(json_file)
     return js_content
 
 
@@ -231,26 +250,13 @@ if MOCK == "true":
     update_document = update_document_mock
 
 
-def dump_json(analysis, output_path):
-    json_output = make_derived_file_name(
-        analysis[ResponseField.IN],
-        new_path=output_path,
-        new_extension="json",
-        new_suffix="stats",
-    )
+def dump_json_to_path(analysis, json_output):
     with open(json_output, "w") as f:
         stats = {
             k: analysis[k]
-            for k in (
-                ResponseField.IN,
-                ResponseField.OCR,
-                ResponseField.ANALYSIS,
-                ResponseField.TIME,
-                ResponseField.QUALITY,
-                ResponseField.STATISTICS,
-            )
+            for k in analysis.keys()
+            if k not in {ResponseField.TEXT}#, ResponseField.ANALYSIS_META}
         }
-        # stats = analysis
         json.dump(stats, f, indent=4)
 
 
@@ -258,6 +264,7 @@ if __name__ == "__main__":
     input_status = "no_input_status"
     while True:
         job_id = ""
+        analysis = {}
         try:
             document = get_next_document()
             last_input_status = input_status
@@ -278,12 +285,10 @@ if __name__ == "__main__":
                 update_document(
                     job_id, APIStatus.OCR_INPROGRESS, message="Doing AI analysis..."
                 )
-                analysis = process(document, OUTPUT_PATH)
+                analysis = process(document, OUTPUT_PATH, dump_text=True, dump_json=DUMP_JSON)
                 LOGGER.info(
-                    f"Processing time took: {analysis[ResponseField.TIME]} seconds"
+                    f"Processing time took: {analysis[ResponseField.TIME]} seconds {analysis[ResponseField.STATISTICS]}"
                 )
-                if DUMP_JSON is True:
-                    dump_json(analysis, OUTPUT_PATH)
                 update_document(job_id, APIStatus.OCR_DONE, analysis=analysis)
             elif input_status in {
                 APIStatus.OCR_DONE,
@@ -308,6 +313,6 @@ if __name__ == "__main__":
             message += str(e)
             if job_id:
                 update_document(
-                    job_id, APIStatus.FAILED, message=message, raise_failure=False
+                    job_id, APIStatus.FAILED, message=message, raise_failure=False, analysis=analysis
                 )
             time.sleep(SLEEP_TIME)

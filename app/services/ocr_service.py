@@ -49,6 +49,7 @@ CMD_ARGS = [
 # for efficiency reasons, large files
 # should not be converted because it takes too long
 FAIL_SAFE_ARGS = ["--output-type", "pdf"]
+FORCE_ROTATE_ARGS = ["--rotate-pages-threshold", "9"]
 CMD_ARGS.extend(["-v", "2"])
 
 OCRMYPDF = "ocrmypdf"
@@ -90,24 +91,30 @@ def remove_encryption(pdf_file_path: str):
         doc.save(pdf_file_path)
 
 
-def make_ocr_command(in_file, pdf_output, pdf_a=True):
+def make_ocr_command(in_file, pdf_output, pdf_a=True, force_rotate=False):
     ocrmypdf_args = [OCRMYPDF, in_file, pdf_output, *CMD_ARGS]
     large_page_count = count_pages(in_file) > MAX_PAGE_PDF_A
     if pdf_a is False or large_page_count:
         ocrmypdf_args = [OCRMYPDF, in_file, pdf_output, *FAIL_SAFE_ARGS, *CMD_ARGS]
+    if force_rotate:
+        ocrmypdf_args.extend(FORCE_ROTATE_ARGS)
     LOGGER.debug(" ".join(ocrmypdf_args))
     return ocrmypdf_args, large_page_count
 
 
-def run_ocr_natively(in_file, pdf_output):
-    ocrmypdf_args, _ = make_ocr_command(in_file, pdf_output, pdf_a=False)
+def run_ocr_natively(in_file, pdf_output, force_rotate):
+    ocrmypdf_args, _ = make_ocr_command(
+        in_file, pdf_output, pdf_a=False, force_rotate=force_rotate
+    )
     status_code = run_ocrmypdf(ocrmypdf_args)
     if status_code != 0:
         raise Exception("Failed to do OCR.")
 
 
-def call_ocr(in_file, pdf_output):
-    ocrmypdf_args, _ = make_ocr_command(in_file, pdf_output, pdf_a=False)
+def call_ocr(in_file, pdf_output, force_rotate):
+    ocrmypdf_args, _ = make_ocr_command(
+        in_file, pdf_output, pdf_a=False, force_rotate=force_rotate
+    )
     proc = run(ocrmypdf_args, capture_output=True, encoding="utf-8")
     if proc.returncode != 0:
         LOGGER.error(proc.stdout)
