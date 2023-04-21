@@ -66,7 +66,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-RUN apt-get update && apt-get install -y git curl wget gcc python3-dev
+RUN apt-get update && apt-get install -y git curl wget gcc python3-dev python3-pip libxml2-dev libxslt1-dev zlib1g-dev g++
 
 RUN git clone  https://github.com/ocrmypdf/OCRmyPDF
 WORKDIR OCRmyPDF
@@ -89,10 +89,11 @@ WORKDIR /app
 #    && echo 'source /root/.cargo/env' >> /root/.bashrc \
 #    && rustup update
 
+RUN pip3 install --no-binary :all: nmslib
+
 RUN pip3 install -r requirements.txt \
     && pip3 install -r test_requirements.txt
 
-RUN pip3 install --no-binary :all: nmslib
 
 RUN echo "Downloading models..."
 RUN ./scripts/pull_models.sh && cp nlp/resources/tessdata/* /usr/share/tesseract-ocr/5/tessdata/
