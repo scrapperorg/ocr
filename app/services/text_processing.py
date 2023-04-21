@@ -1,8 +1,11 @@
+import logging
 import re
 import unicodedata
 
 import numpy as np
 from tqdm import tqdm
+
+LOGGER = logging.getLogger(__name__)
 
 
 def remove_diacritics(token):
@@ -72,10 +75,10 @@ class Cleaner:
 
     def clean(
         self,
-        lines,
+        text,
         percent_max_numeric=0.7,
         percent_max_non_ascii=0.40,
-        min_line_length=20,
+        min_line_length=10,
         verbose=False,
         disable_pbar=True,
     ):
@@ -87,7 +90,7 @@ class Cleaner:
         total_original_length = 0
         total_clean_length = 0
         output = []
-        for line in tqdm(lines, disable=disable_pbar):
+        for line in tqdm(text.split("\n"), disable=disable_pbar):
             line = line.strip()
 
             # get stats about line
@@ -197,15 +200,17 @@ class Cleaner:
 
         # pack stats
         stats = {}
-        stats["skipped_because_min_length"] = skipped_because_min_length
-        stats["skipped_alpha_count"] = skipped_alpha_count
-        stats["skipped_because_max_numeric"] = skipped_because_max_numeric
-        stats["skipped_because_max_non_ascii"] = skipped_because_max_non_ascii
-        stats["skipped_because_forbidden_chars"] = skipped_because_forbidden_chars
+        stats["skipped_because_min_length"] = skipped_because_min_length.tolist()
+        stats["skipped_alpha_count"] = skipped_alpha_count.tolist()
+        stats["skipped_because_max_numeric"] = skipped_because_max_numeric.tolist()
+        stats["skipped_because_max_non_ascii"] = skipped_because_max_non_ascii.tolist()
+        stats[
+            "skipped_because_forbidden_chars"
+        ] = skipped_because_forbidden_chars.tolist()
         stats["total_original_length"] = total_original_length
         stats["total_clean_length"] = total_clean_length
-
-        return output, stats
+        LOGGER.info(f"Cleaning stats {stats}")
+        return "".join(output)
 
     def add_stats(self, a, b):
         """

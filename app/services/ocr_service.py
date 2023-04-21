@@ -7,6 +7,8 @@ import pikepdf
 from ocrmypdf.__main__ import run as run_ocrmypdf
 from ocrmypdf._exec import tesseract
 
+from app.services.text_processing import Cleaner
+
 LEGAL_LANG = "ro_legal"
 BACK_LANG = "ron"
 # number of parallel processes to use for OCR
@@ -140,6 +142,7 @@ def get_ocrized_text_from_blocks(pdf_file):
         for page in pdf_f.pages():
             blocks = page.get_text(option="blocks", flags=fitz.TEXTFLAGS_SEARCH)
             text += "\n".join([block[4].replace("\n", " ") for block in blocks]) + "\n"
+    text = Cleaner().clean(text)
     return text
 
 

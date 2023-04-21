@@ -22,7 +22,7 @@ from nlp.resources.constants import KEYWORDS_PATH
 LOGGER = logging.getLogger(__name__)
 WORDNET = rowordnet.RoWordNet()
 NLP = None
-VECTOR_SEARCH = os.environ.get("VECTOR_SEARCH", False)
+VECTOR_SEARCH = bool(os.environ.get("VECTOR_SEARCH", False))
 
 
 def load_keywords():
@@ -40,9 +40,10 @@ def load_spacy_global_model():
     pipelines_to_disable = ["ner", "parser"]
     if enable_ner:
         pipelines_to_disable = []
-    model_name = os.environ.get("SPACY_MODEL", "ro_legal_fl")
-    if not spacy.util.is_package(model_name):
-        model_name = "ro_core_news_lg"
+    model_name = os.environ.get("SPACY_MODEL", "ro_core_news_lg")
+    # "ro_legal_fl")
+    # if not spacy.util.is_package(model_name):
+    #    model_name = "ro_core_news_lg"
     NLP = spacy.load(model_name, disable=pipelines_to_disable)
     LOGGER.info(f"Loaded model {model_name}.")
     return NLP
@@ -150,6 +151,7 @@ LEMMA_MATCHER = make_lemma_matcher(KEYWORDS_AS_DOCS, NLP)
 make_keywords_in_spacy(KEYWORDS_AS_DOCS, NLP)
 VECTOR_SEARCHER = VectorSearcher()
 if VECTOR_SEARCH:
+    LOGGER.info("Building vector searcher for keywords...")
     VECTOR_SEARCHER.fit(KEYWORDS_AS_DOCS)
 
 

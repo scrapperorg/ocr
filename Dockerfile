@@ -66,7 +66,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-RUN apt-get update && apt-get install -y git curl wget gcc python3-dev libxml2-dev libxslt1-dev zlib1g-dev g++
+RUN apt-get update && apt-get install -y git curl wget
 
 RUN git clone  https://github.com/ocrmypdf/OCRmyPDF
 WORKDIR OCRmyPDF
@@ -92,7 +92,8 @@ WORKDIR /app
 RUN pip3 install -r requirements.txt \
     && pip3 install -r test_requirements.txt
 
-RUN pip3 install --no-binary :all: nmslib
+# nmslib throws core dump in container, skipping it for now
+# RUN pip3 install --no-binary :all: nmslib
 
 
 RUN echo "Downloading models..."

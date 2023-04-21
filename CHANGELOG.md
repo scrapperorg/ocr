@@ -2,16 +2,16 @@
 Adding notes to what is being changed from time to time
 
 
-## [0.6.1] 10.04.2023
+## [0.6.3] 10.04.2023
 ### Added
-- `en_core_ro_lg` as default model
+- `en_core_ro_lg` as alternative model
 - synonym expansion from Romanian WordNet
 - for each synonym, a cosine similarity filtering is used to compare against the context vector of each word
 - params to enable / disable Vector Search and synonyms
-- VectorSearcher using nsmlib to find the most similar n-grams to existing keyword phrases
-- number of characters in the stats
-- text cleaner pre-processor
-- install gcc in Dockerfile
+- VectorSearcher using nsmlib failed with core dumped - changed into OneClassSVM
+- introduced number of characters in the statistics
+- text cleaner pre-processor to clean the raw text documents
+
 
 
 ## [0.5.3] 10.04.2023

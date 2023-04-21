@@ -25,7 +25,7 @@ LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 MAX_NUM_PAGES = int(os.environ.get("MAX_NUM_PAGES", 75600))
 MIN_QUALITY = 77.
 
-APP_VERSION = "0.6.1"
+APP_VERSION = "0.6.3"
 
 LOG_CONFIG = (
     f"Worker {WORKER_ID} : {APP_VERSION}: "
