@@ -63,6 +63,10 @@ def test_empty_pdf():
         pipeline("empty.pdf")
 
 
+def test_typos_pdf():
+    analysis = pipeline("typos.pdf")
+    print(1)
+
 def test_strange_pdf(caplog):
     caplog.set_level(logging.INFO)
     analysis = pipeline("strange_error.pdf")

@@ -3,7 +3,8 @@ import re
 
 import nltk
 
-from app.utils.file_util import read_text_file, remove_diacritics
+from app.services.text_processing import remove_diacritics
+from app.utils.file_util import read_text_file
 from nlp.resources.constants import RO_CHARS, VOCAB_PATH, WORDLIST_PATH
 
 LOGGER = logging.getLogger(__name__)

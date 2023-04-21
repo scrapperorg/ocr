@@ -92,5 +92,7 @@ WORKDIR /app
 RUN pip3 install -r requirements.txt \
     && pip3 install -r test_requirements.txt
 
+RUN pip3 install --no-binary :all: nmslib
+
 RUN echo "Downloading models..."
 RUN ./scripts/pull_models.sh && cp nlp/resources/tessdata/* /usr/share/tesseract-ocr/5/tessdata/

@@ -10,27 +10,17 @@
 Currently there are several environment variables that have to be set before the docker container starts.
 These can be set in `docker-compose.yml` environment section:
 
-##### WORKER_ID=1
-Can be set to any value that can identify the worker, in cases when there are multiple workers spawned.
-
-##### OUTPUT_PATH=/storage
-A path that is accessible by the worker to be used to write the output PDF files.
-
-##### SLEEP_TIME=10
-This is the amount of seconds to sleep when encountering an error or when no more documents are left to be processed.
-
-##### LOG_LEVEL=INFO
-Log level, recommended to be INFO
-
-##### MAX_NUM_PAGES=2000
-Maximum document length to process. Otherwise will return failure. This is more of a safety parameter to avoid ingesting documents if very large sizes. If not set, by default is `75600` the time to process a document for one week `75600*8 / 60/60/24` with one CPU (8 seconds per page).
-
-##### NUM_PROC=1
-Number of parallel processes to run jobs on. If the container has more than one CPU available, this could drastically increase performance.
+- WORKER_ID=1 - Can be set to any value that can identify the worker, in cases when there are multiple workers spawned.
+- OUTPUT_PATH=/storage - A path that is accessible by the worker to be used to write the output PDF files.
+- SLEEP_TIME=10 - This is the amount of seconds to sleep when encountering an error or when no more documents are left to be processed.
+- LOG_LEVEL=INFO -Log level, recommended to be INFO
+- MAX_NUM_PAGES=2000 - Maximum document length to process. Otherwise will return failure. This is more of a safety parameter to avoid ingesting documents if very large sizes. If not set, by default is `75600` the time to process a document for one week `75600*8 / 60/60/24` with one CPU (8 seconds per page).
+- NUM_PROC=2 Number of parallel processes to run jobs on. If the container has more than one CPU available, this could drastically increase performance.
+- API_ENDPOINT=http://{} - Represents the endpoint that feeds the worker with documents.
+- SPACY_MODEL=ro_legal_fl - default is custom floret legal embeddings; used for word representations and for lemmatization; can be anything from [here](https://spacy.io/models/ro)
+- VECTOR_SEARCH=True - if enabled, it will highlight with blue semantic similarly phrases
 
 
-##### API_ENDPOINT=http://{}
-Represents the endpoint that feeds the worker with documents.
 The HTTP server must implement two endpoints `/next-document` to return a document of the following form:
 ```json
 {

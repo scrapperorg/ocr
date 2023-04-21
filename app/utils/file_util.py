@@ -66,9 +66,3 @@ def read_text_file(path):
     """Read text file"""
     with open(path, "r", encoding="utf-8") as fin:
         return fin.read()
-
-
-def remove_diacritics(token):
-    return (
-        unicodedata.normalize("NFKD", token).encode("ascii", "ignore").decode("ascii")
-    )
