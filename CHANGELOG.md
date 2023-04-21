@@ -2,7 +2,7 @@
 Adding notes to what is being changed from time to time
 
 
-## [0.6.0] 10.04.2023
+## [0.6.1] 10.04.2023
 ### Added
 - `en_core_ro_lg` as default model
 - synonym expansion from Romanian WordNet
@@ -11,6 +11,7 @@ Adding notes to what is being changed from time to time
 - VectorSearcher using nsmlib to find the most similar n-grams to existing keyword phrases
 - number of characters in the stats
 - text cleaner pre-processor
+- install gcc in Dockerfile
 
 
 ## [0.5.3] 10.04.2023
