@@ -66,7 +66,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-RUN apt-get update && apt-get install -y git curl wget libcairo2-dev pkg-config python3-dev
+RUN apt-get update && apt-get install -y git curl wget build-essential libcairo2-dev pkg-config python3-dev
 
 RUN git clone  https://github.com/ocrmypdf/OCRmyPDF
 WORKDIR OCRmyPDF
