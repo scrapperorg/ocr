@@ -2,6 +2,12 @@
 Adding notes to what is being changed from time to time
 
 
+## [1.0.0] 09.05.2023
+- ro_legal as default model
+- context on full keyword
+- reading keywords from next-document response
+
+
 ## [0.6.3] 10.04.2023
 ### Added
 - `en_core_ro_lg` as alternative model

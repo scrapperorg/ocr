@@ -25,7 +25,8 @@ LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 MAX_NUM_PAGES = int(os.environ.get("MAX_NUM_PAGES", 75600))
 MIN_QUALITY = 77.
 
-APP_VERSION = "0.6.3"
+
+APP_VERSION = "1.0.0"
 
 LOG_CONFIG = (
     f"Worker {WORKER_ID} : {APP_VERSION}: "
@@ -70,6 +71,7 @@ class ResponseField:
     STATISTICS = "statistics"
     TIME = "processing_time"
     WK_VERSION = "worker_version"
+    KWDS_HASH = 'keywords_hash'
 
 
 def raise_for_status(response):
@@ -114,6 +116,7 @@ def get_next_document_mock(
     # doc_id = 'encrypt'
     # doc_id = 'empty'
     # doc_id = "digitally_signed"
+    kwds = doc_analysis.load_default_file_keywords()
     in_str = """{{
     "id":	"{doc_id}",
     "storagePath":	"{directory}/{doc_id}.pdf",
@@ -122,6 +125,8 @@ def get_next_document_mock(
         doc_id=doc_id, directory=directory
     )
     retval = json.loads(in_str)
+    retval["keywordsHash"] = "1"
+    retval["keywords"] = kwds
     return retval
 
 
@@ -226,9 +231,10 @@ def process(document, output_path, dump_text=False, dump_json=False):
         ocr_service.dump_text(text, text_file)
         assert_path_exists(text_file)
     js_content[ResponseField.TEXT_FILE] = text_file
-
+    kwds_hash = document.get('keywordsHash', '0')
+    js_content[ResponseField.KWDS_HASH] = kwds_hash
     highlight_meta_js, statistics = doc_analysis.highlight_keywords(
-        ocr_output, anl_output
+        ocr_output, anl_output, document.get('keywords', []), kwds_hash
     )
     js_content[ResponseField.STATISTICS] = statistics
     assert_path_exists(anl_output)

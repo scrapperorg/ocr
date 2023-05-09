@@ -5,7 +5,6 @@ from io import BytesIO
 
 import fitz
 import numpy as np
-import rowordnet
 import spacy
 import spacy_alignments as tokenizations
 from sklearn.metrics.pairwise import cosine_similarity
@@ -13,24 +12,20 @@ from spacy.matcher import PhraseMatcher
 from spacy.tokens import Token
 from spacy.util import filter_spans
 
-from app.services.ocr_evaluation import normalize_word
+from app.services.synonyms import get_synonyms
 from app.services.text_processing import remove_diacritics
 from app.services.vector_searcher import VectorSearcher
 from app.utils.file_util import read_text_file
 from nlp.resources.constants import KEYWORDS_PATH
 
 LOGGER = logging.getLogger(__name__)
-WORDNET = rowordnet.RoWordNet()
-NLP = None
 VECTOR_SEARCH = bool(os.environ.get("VECTOR_SEARCH", False))
-
-
-def load_keywords():
-    keywords = [
-        word for word in read_text_file(KEYWORDS_PATH).split("\n") if word.strip()
-    ]
-    keywords = set(keywords)
-    return keywords
+NLP = None
+KEYWORDS_AS_DOCS = None
+ORTH_MATCHER = None
+LAST_KEYWORDS_HASH = "0"
+LEMMA_MATCHER = None
+VECTOR_SEARCHER = VectorSearcher()
 
 
 def load_spacy_global_model():
@@ -40,13 +35,16 @@ def load_spacy_global_model():
     pipelines_to_disable = ["ner", "parser"]
     if enable_ner:
         pipelines_to_disable = []
-    model_name = os.environ.get("SPACY_MODEL", "ro_core_news_lg")
-    # "ro_legal_fl")
-    # if not spacy.util.is_package(model_name):
-    #    model_name = "ro_core_news_lg"
+    model_name = os.environ.get("SPACY_MODEL", "ro_legal_fl")
+    if not spacy.util.is_package(model_name):
+        model_name = "ro_core_news_lg"
     NLP = spacy.load(model_name, disable=pipelines_to_disable)
     LOGGER.info(f"Loaded model {model_name}.")
     return NLP
+
+
+NLP = load_spacy_global_model()
+Token.set_extension("synonyms", getter=get_synonyms)
 
 
 def process_keywords_with_spacy(keywords, nlp):
@@ -71,31 +69,6 @@ def make_orth_matcher(keywords_as_docs, nlp):
     return orth_matcher
 
 
-def get_synonyms(token):
-    if not token.is_alpha or (len(token.text) < 4):
-        return []
-    lexem_literal = sum(
-        [
-            WORDNET.synset(synset_id).literals
-            for synset_id in WORDNET.synsets(literal=token.text)
-        ],
-        [],
-    )
-    lemma_literal = sum(
-        [
-            WORDNET.synset(synset_id).literals
-            for synset_id in WORDNET.synsets(literal=token.lemma_)
-        ],
-        [],
-    )
-    all_literals = set(lemma_literal + lexem_literal)
-    synonyms = []
-    for literal in all_literals:
-        if token.text not in literal and "_" not in literal:
-            synonyms.append(literal)
-    return list(set(synonyms))
-
-
 def get_token_context(token, window=1):
     start = max(token.i - window, 0)
     end = min(token.i + window + 1, len(token.doc))
@@ -106,9 +79,7 @@ def filter_synonyms(token, synonyms, nlp, threhsold=0.5):
     if not synonyms:
         return []
     vectors = [nlp.vocab[synonym].vector for synonym in synonyms]
-    context = get_token_context(token)
-    token_vect = context.vector
-    similarity = cosine_similarity([token_vect], vectors)
+    similarity = cosine_similarity([token.doc.vector], vectors)
     locations = np.where(similarity > threhsold)[1]
     return [synonyms[location] for location in locations]
 
@@ -142,19 +113,32 @@ def make_keywords_in_spacy(keywords_as_docs, nlp):
     ruler.add_patterns(patterns)
 
 
-NLP = load_spacy_global_model()
-Token.set_extension("synonyms", getter=get_synonyms)
-KEYWORDS = load_keywords()
-KEYWORDS_AS_DOCS = process_keywords_with_spacy(KEYWORDS, NLP)
-ORTH_MATCHER = make_orth_matcher(KEYWORDS_AS_DOCS, NLP)
-LEMMA_MATCHER = make_lemma_matcher(KEYWORDS_AS_DOCS, NLP)
-make_keywords_in_spacy(KEYWORDS_AS_DOCS, NLP)
-VECTOR_SEARCHER = VectorSearcher()
-if VECTOR_SEARCH:
-    LOGGER.info("Building vector searcher for keywords...")
-    VECTOR_SEARCHER.fit(KEYWORDS_AS_DOCS)
+def update_global_kewyord_vars(keywords):
+    global KEYWORDS_AS_DOCS, ORTH_MATCHER, LEMMA_MATCHER, VECTOR_SEARCHER
+    KEYWORDS_AS_DOCS = process_keywords_with_spacy(keywords, NLP)
+    ORTH_MATCHER = make_orth_matcher(KEYWORDS_AS_DOCS, NLP)
+    LEMMA_MATCHER = make_lemma_matcher(KEYWORDS_AS_DOCS, NLP)
+    make_keywords_in_spacy(KEYWORDS_AS_DOCS, NLP)
+    if VECTOR_SEARCH:
+        LOGGER.info("Building vector searcher for keywords...")
+        VECTOR_SEARCHER.fit(KEYWORDS_AS_DOCS)
 
 
+def load_response_keywords(keywords_response):
+    return set(
+        [kwd["name"].strip() for kwd in keywords_response if kwd["name"].strip()]
+    )
+
+
+def load_default_file_keywords():
+    keywords = [
+        word for word in read_text_file(KEYWORDS_PATH).split("\n") if word.strip()
+    ]
+    keywords = set(keywords)
+    return [{"name": keyword} for keyword in keywords]
+
+
+"""
 def highlight_keywords_semantic(input_pdf_path, output_pdf_path):
     # Under construction
     highlight_meta_results = []
@@ -246,6 +230,7 @@ def highlight_keywords_strlev(input_pdf_path, output_pdf_path):
         )
     return highlight_meta_js
     # TODO: handle errors
+"""
 
 
 def filter_matches(matches):
@@ -400,6 +385,13 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
     # TODO: handle errors
 
 
-def highlight_keywords(input_pdf_path, output_pdf_path):
-    # return highlight_keywords_strlev(input_pdf_path, output_pdf_path)
+def highlight_keywords(input_pdf_path, output_pdf_path, keywords, last_modified):
+    global LAST_KEYWORDS_HASH
+    LOGGER.info(
+        f"Highlighting with keywords list hash '{last_modified}' of '{len(keywords)}' keywords"
+    )
+    if last_modified != LAST_KEYWORDS_HASH:
+        LAST_KEYWORDS_HASH = last_modified
+        keywords = load_response_keywords(keywords)
+        update_global_kewyord_vars(keywords)
     return highlight_keywords_spacy(input_pdf_path, output_pdf_path)
