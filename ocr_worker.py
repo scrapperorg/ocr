@@ -26,7 +26,7 @@ MAX_NUM_PAGES = int(os.environ.get("MAX_NUM_PAGES", 75600))
 MIN_QUALITY = 77.
 
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 
 LOG_CONFIG = (
     f"Worker {WORKER_ID} : {APP_VERSION}: "
@@ -109,14 +109,18 @@ def get_next_document(not_found=False):
 
 
 def get_next_document_mock(
-    doc_id="38f93d44-1e4e-4c37-9df8-879e2b5993c0", directory="nlp/documents/"
+    doc_id="38f93d44-1e4e-4c37-9df8-879e2b5993c0",
+    directory="nlp/documents/",
+    keywords_hash="1",
+    keywords=None,
 ):
     # doc_id = 'fe1b2d8d-7d89-4af2-aa3e-932d9624f7fb'
     # doc_id = '3b4d634d-8616-4809-9c68-2e2c923d1e1a'
     # doc_id = 'encrypt'
     # doc_id = 'empty'
     # doc_id = "digitally_signed"
-    kwds = doc_analysis.load_default_file_keywords()
+    if keywords is None:
+        keywords = doc_analysis.load_default_file_keywords()
     in_str = """{{
     "id":	"{doc_id}",
     "storagePath":	"{directory}/{doc_id}.pdf",
@@ -125,8 +129,8 @@ def get_next_document_mock(
         doc_id=doc_id, directory=directory
     )
     retval = json.loads(in_str)
-    retval["keywordsHash"] = "1"
-    retval["keywords"] = kwds
+    retval["keywordsHash"] = keywords_hash
+    retval["keywords"] = keywords
     return retval
 
 

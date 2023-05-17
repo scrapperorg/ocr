@@ -97,6 +97,8 @@ def get_token_variants(keyword_token):
 
 
 def make_keywords_in_spacy(keywords_as_docs, nlp):
+    if "span_ruler" in nlp.pipe_names:
+        nlp.remove_pipe("span_ruler")
     ruler = nlp.add_pipe("span_ruler")
     patterns = []
     for kw in keywords_as_docs:
@@ -387,11 +389,17 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
 
 def highlight_keywords(input_pdf_path, output_pdf_path, keywords, last_modified):
     global LAST_KEYWORDS_HASH
-    LOGGER.info(
+    LOGGER.debug(
         f"Highlighting with keywords list hash '{last_modified}' of '{len(keywords)}' keywords"
     )
     if last_modified != LAST_KEYWORDS_HASH:
-        LAST_KEYWORDS_HASH = last_modified
-        keywords = load_response_keywords(keywords)
-        update_global_kewyord_vars(keywords)
+        try:
+            keywords = load_response_keywords(keywords)
+            update_global_kewyord_vars(keywords)
+            LAST_KEYWORDS_HASH = last_modified
+        except Exception:
+            LOGGER.exception("Failed to update the list of keywords.")
+        LOGGER.info(
+            f"Highlighting with keywords list hash '{last_modified}' of '{len(keywords)}' keywords"
+        )
     return highlight_keywords_spacy(input_pdf_path, output_pdf_path)

@@ -32,11 +32,16 @@ def test_process_entire_dir():
             LOGGER.info(F'Eșuat {document}', str(e))
 """
 
-def pipeline(fis_name):
+def pipeline(fis_name,
+             keywords_hash="1",
+             keywords=None):
     doc_id, _ = os.path.splitext(os.path.basename(fis_name))
     output_dir = os.path.join(DOC_DIR, doc_id)
     safe_make_dirs(output_dir)
-    document = get_next_document_mock(doc_id, DOC_DIR)
+    document = get_next_document_mock(doc_id,
+                                      DOC_DIR,
+                                      keywords_hash=keywords_hash,
+                                      keywords=keywords)
     validate_document(document)
     analysis = process(document, output_dir, dump_text=True, dump_json=True)
     return analysis
@@ -93,3 +98,12 @@ def test_digitally_signed_pdf():
 def test_password_encrypted_pdf():
     with pytest.raises(Exception):
         pipeline("password_encrypted.pdf")
+
+
+def test_update_keywords_list():
+    kwds1 = [{'name': 'centralizatăaa'}]
+    analysis = pipeline("typos.pdf", keywords_hash="1", keywords=kwds1)
+    assert analysis['highlight_metadata'][0]['total_occs'] == 1
+    kwds2 = [{'name': 'achiz1ție'}]
+    analysis = pipeline("typos.pdf", keywords_hash="2", keywords=kwds2)
+    assert analysis['highlight_metadata'][0]['total_occs'] == 1

@@ -2,6 +2,10 @@
 Adding notes to what is being changed from time to time
 
 
+## [1.0.1] 17.05.2023
+- fix issue with span_ruler pipe when already there
+- improved robustness when keywords loading fails
+
 ## [1.0.0] 09.05.2023
 - ro_legal as default model
 - context on full keyword
