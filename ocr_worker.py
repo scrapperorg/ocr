@@ -107,6 +107,16 @@ def shorten_payload(body: Dict[str, Any]) -> Dict[str, Any]:
     return body
 
 
+def minimal_payload(body: Dict[str, Any]) -> Dict[str, Any]:
+    """Makes minimal payload to be able to get the partial results."""
+    analysis = body.get(ResponseField.ANALYSIS, {})
+    if analysis:
+        analysis[ResponseField.TEXT] = summarization.summarize(analysis[ResponseField.TEXT])
+        analysis[ResponseField.ANALYSIS_META] = []
+        body[ResponseField.ANALYSIS] = analysis
+    return body
+
+
 #  @retry(stop=stop_after_attempt(3), before=before_log(logger, logging.INFO))
 def update_document(id, status, message="", analysis={}, raise_failure=True):
     """Updates the status of a document in the API.
@@ -133,10 +143,14 @@ def update_document(id, status, message="", analysis={}, raise_failure=True):
     )
     response = requests.post(endpoint, json=body)
     logger.info(f"Endpoint response {response.text} status {response.status_code}")
-    if response.status_code >= 400:
+    if response.status_code == 413:
         logger.info("Trying again with shorter payload")
         response = requests.post(endpoint, json=shorten_payload(body))
         logger.info(f"Endpoint response {response.text} status {response.status_code}")
+        if response.status_code == 413:
+            logger.warning("Payload too large even after shortening. Trying again with empty payload.")
+            response = requests.post(endpoint, json=shorten_payload(body))
+            logger.info(f"Endpoint response {response.text} status {response.status_code}")
     if raise_failure:
         raise_for_status(response)
 

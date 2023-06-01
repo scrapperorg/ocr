@@ -1,12 +1,13 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
-## [1.1.0] 31.05.2023
+## [1.1.2] 31.05.2023
 ### Added
 - summarization when payload fails
 - type annotations to functions
 ### Changed
 - code cleaning so that env variables are in a single file
+- shortening retry untill we have an empty payload
 ### Removed
 - web API
 - web dependencies
