@@ -4,8 +4,6 @@ import unicodedata
 import uuid
 from pathlib import Path
 
-from fastapi import UploadFile
-
 _filename_ascii_strip_re = re.compile(r"[^A-Za-z0-9_.-]")
 
 
@@ -52,7 +50,7 @@ def make_derived_file_name(
     return os.path.join(work_folder, filename)
 
 
-def upload(file: UploadFile, work_folder: Path) -> str:
+def upload(file, work_folder: Path) -> str:
     """Upload the file to the work folder"""
     secure_file_name = secure_filename(file.filename)
     up_file = os.path.join(work_folder, secure_file_name)
