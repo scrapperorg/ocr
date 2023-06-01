@@ -33,7 +33,7 @@ def folders_in_folder(mypath):
     )
 
 
-def run_performance_test(input_dir, out_dir, analysis_file=f'perf_analysis_default_.jsonl'):
+def run_performance_test(input_dir, out_dir, analysis_file='perf_analysis_default_.jsonl'):
     """Path to downloaded dirs with docs"""
     item = {}
     safe_make_dirs(out_dir)

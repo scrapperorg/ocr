@@ -67,7 +67,7 @@ def raise_for_status(response: requests.Response) -> None:
         raise requests.HTTPError(http_error_msg, response=response)
 
 
-@retry(stop=stop_after_attempt(3), before=before_log(logger, logging.INFO))
+#@retry(stop=stop_after_attempt(3), before=before_log(logger, logging.INFO))
 def get_next_document(not_found: bool = False) -> Dict[Any, Any]:
     """Gets the next document to process from the API."""
     endpoint = os.path.join(API_ENDPOINT, "next-document")
@@ -107,7 +107,7 @@ def shorten_payload(body: Dict[str, Any]) -> Dict[str, Any]:
     return body
 
 
-# @retry(stop=stop_after_attempt(3), before=before_log(logger, logging.INFO))
+#  @retry(stop=stop_after_attempt(3), before=before_log(logger, logging.INFO))
 def update_document(id, status, message="", analysis={}, raise_failure=True):
     """Updates the status of a document in the API.
 
