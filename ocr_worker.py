@@ -1,80 +1,53 @@
 '''AI analysis worker'''
 import os
 import logging
+from typing import Any, Dict
 import requests
 import json
 import time
 import sys
-import time
-from app.constants import APIStatus
 
-from app.services import doc_analysis, ocr_evaluation, ocr_service
-from app.utils.file_util import make_derived_file_name, read_text_file
+from app.config import (API_ENDPOINT,
+                        APP_VERSION,
+                        DUMP_JSON,
+                        MAX_NUM_PAGES,
+                        MIN_QUALITY,
+                        OUTPUT_PATH,
+                        SLEEP_TIME,
+                        WORKER_ID)
 
+from app.constants import (APIStatus,
+                           ResponseField,)
 
+from app.services import (doc_analysis,
+                          ocr_evaluation,
+                          ocr_service,
+                          summarization,)
+from app.utils.file_util import make_derived_file_name
 from tenacity import before_log, retry, stop_after_attempt
 
-MOCK = os.environ.get("MOCK", False)
-WORKER_ID = os.environ.get("WORKER_ID", 1)
-API_URL = os.environ.get("API_URL", "http://3.229.101.152:8081")
-API_ENDPOINT = os.environ.get("API_ENDPOINT", API_URL)
-OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "nlp/documents/analysis")
-SLEEP_TIME = int(os.environ.get("SLEEP_TIME", 10))
-DUMP_JSON = bool(os.environ.get("DUMP_JSON", False))
-LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
-MAX_NUM_PAGES = int(os.environ.get("MAX_NUM_PAGES", 75600))
-MIN_QUALITY = 77.
 
-
-APP_VERSION = "1.0.1"
-
-LOG_CONFIG = (
-    f"Worker {WORKER_ID} : {APP_VERSION}: "
-    + " [%(levelname)s] %(asctime)s %(name)s:%(lineno)d - %(message)s"
-)
-logging.basicConfig(level=LOG_LEVEL, format=LOG_CONFIG)
-
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # hack because subprocess does not inherit PATH env variable from virtual env
 # on newer python versions
 os.environ["PATH"] = os.path.dirname(sys.executable) + ":" + os.environ["PATH"]
 
 
-def assert_path_exists(path):
+def assert_path_exists(path: str) -> None:
+    """Asserts that a path exists."""
     if not os.path.exists(path):
         raise ValueError(f"File path {path} does not exist.")
 
 
-def safe_make_dirs(directory):
+def safe_make_dirs(directory: str) -> None:
+    """Utility function to make a directory if it does not exist."""
     if not os.path.exists(directory):
-        LOGGER.info(f"Making directory {directory}")
+        logger.info(f"Making directory {directory}")
         os.makedirs(directory)
 
 
-safe_make_dirs(OUTPUT_PATH)
-assert_path_exists(OUTPUT_PATH)
-
-
-class ResponseField:
-    WORKER = "worker_id"
-    IN = "input_file"
-    JOB_ID = "job_id"
-    IN_STATUS = "input_status"
-    OUT = "analysis_file"
-    OCR = "ocr_file"
-    ANALYSIS = "highlight_file"
-    ANALYSIS_META = "highlight_metadata"
-    TEXT_FILE = "text_file"
-    TEXT = "text"
-    QUALITY = "ocr_quality"
-    STATISTICS = "statistics"
-    TIME = "processing_time"
-    WK_VERSION = "worker_version"
-    KWDS_HASH = 'keywords_hash'
-
-
-def raise_for_status(response):
+def raise_for_status(response: requests.Response) -> None:
     """Raises :class:`HTTPError`, if one occurred."""
     http_error_msg = ""
     if isinstance(response.reason, bytes):
@@ -94,58 +67,57 @@ def raise_for_status(response):
         raise requests.HTTPError(http_error_msg, response=response)
 
 
-# @retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
-def get_next_document(not_found=False):
+@retry(stop=stop_after_attempt(3), before=before_log(logger, logging.INFO))
+def get_next_document(not_found: bool = False) -> Dict[Any, Any]:
+    """Gets the next document to process from the API."""
     endpoint = os.path.join(API_ENDPOINT, "next-document")
     if not_found:
         endpoint = endpoint + "?forceStatus=not_found"
     response = requests.get(endpoint)
     raise_for_status(response)
-    LOGGER.debug(
+    logger.debug(
         f"Endpoint {endpoint} response {response.text} status {response.status_code}"
     )
     parsed_response = response.json()
     return parsed_response
 
 
-def get_next_document_mock(
-    doc_id="38f93d44-1e4e-4c37-9df8-879e2b5993c0",
-    directory="nlp/documents/",
-    keywords_hash="1",
-    keywords=None,
-):
-    # doc_id = 'fe1b2d8d-7d89-4af2-aa3e-932d9624f7fb'
-    # doc_id = '3b4d634d-8616-4809-9c68-2e2c923d1e1a'
-    # doc_id = 'encrypt'
-    # doc_id = 'empty'
-    # doc_id = "digitally_signed"
-    if keywords is None:
-        keywords = doc_analysis.load_default_file_keywords()
-    in_str = """{{
-    "id":	"{doc_id}",
-    "storagePath":	"{directory}/{doc_id}.pdf",
-    "status": "downloaded"
-    }}""".format(
-        doc_id=doc_id, directory=directory
-    )
-    retval = json.loads(in_str)
-    retval["keywordsHash"] = keywords_hash
-    retval["keywords"] = keywords
-    return retval
-
-
-# @retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
-def get_document(id: str):
+@retry(stop=stop_after_attempt(3), before=before_log(logger, logging.INFO))
+def get_document(id: str) -> Dict[Any, Any]:
+    """Gets a document by id to process from the API."""
     endpoint = os.path.join(API_ENDPOINT, "document", id)
-    LOGGER.info(f"Calling endpoint {endpoint}")
+    logger.info(f"Calling endpoint {endpoint}")
     response = requests.get(endpoint)
-    LOGGER.info(f"Endpoint response {response.text}")
+    logger.info(f"Endpoint response {response.text}")
     response.raise_for_status()
     return response.json()
 
 
-# @retry(stop=stop_after_attempt(3), before=before_log(LOGGER, logging.INFO))
+def shorten_analysis(analysis: Dict[str, Any]) -> Dict[str, Any]:
+    """Shortens the analysis field of the response."""
+    analysis[ResponseField.TEXT] = summarization.summarize(analysis[ResponseField.TEXT])
+    return analysis
+
+
+def shorten_payload(body: Dict[str, Any]) -> Dict[str, Any]:
+    """Shortens the analysis field of the response."""
+    analysis = body.get(ResponseField.ANALYSIS, {})
+    if analysis:
+        body[ResponseField.ANALYSIS] = shorten_analysis(analysis)
+    return body
+
+
+# @retry(stop=stop_after_attempt(3), before=before_log(logger, logging.INFO))
 def update_document(id, status, message="", analysis={}, raise_failure=True):
+    """Updates the status of a document in the API.
+
+    :param id: document id
+    :param status: status to update
+    :param message: additional message containing errors, defaults to ""
+    :param analysis: analysis of the document, defaults to {}
+    :param raise_failure: raises an exception if API can't process the request\
+        defaults to True
+    """
     endpoint = os.path.join(API_ENDPOINT, "ocr-updates")
     body = {
         ResponseField.WORKER: WORKER_ID,
@@ -155,29 +127,22 @@ def update_document(id, status, message="", analysis={}, raise_failure=True):
         "analysis": analysis,
     }
     stats = analysis.get(ResponseField.STATISTICS, {})
-    LOGGER.info(
+    logger.info(
         f"Calling endpoint {endpoint}"
         f" Document: '{id}' status: '{status}' message: '{message}' stats: '{stats}'"
     )
     response = requests.post(endpoint, json=body)
-    LOGGER.info(f"Endpoint response {response.text} status {response.status_code}")
+    logger.info(f"Endpoint response {response.text} status {response.status_code}")
+    if response.status_code >= 400:
+        logger.info("Trying again with shorter payload")
+        response = requests.post(endpoint, json=shorten_payload(body))
+        logger.info(f"Endpoint response {response.text} status {response.status_code}")
     if raise_failure:
-        response.raise_for_status()
+        raise_for_status(response)
 
 
-def update_document_mock(id, status, message="", analysis={}, raise_failure=True):
-    endpoint = os.path.join(API_ENDPOINT, "ocr-updates")
-    body = {
-        ResponseField.WORKER: WORKER_ID,
-        "id": id,
-        "status": status,
-        "message": message,
-        "analysis": analysis,
-    }
-    LOGGER.info(f"Calling endpoint {endpoint} with body {body}")
-
-
-def assert_doc_length(doc_path):
+def assert_doc_length(doc_path: str):
+    """Asserts that a document is not too long."""
     doc_length = ocr_service.count_pages(doc_path)
     if doc_length > MAX_NUM_PAGES:
         raise ValueError(
@@ -185,19 +150,31 @@ def assert_doc_length(doc_path):
         )
 
 
-def validate_document(document):
+def validate_document(document: Dict[str, Any]):
+    """Validates that a document is valid for processing."""
     doc_path = document["storagePath"]
     assert_path_exists(doc_path)
     assert ocr_service.is_pdf_valid(doc_path)
     assert_doc_length(doc_path)
     if ocr_service.is_pdf_encrypted(doc_path):
-        LOGGER.info(
+        logger.info(
             f"{doc_path} is encrypted, digitially signed or password protected; atempting to clean..."
         )
         ocr_service.remove_encryption(doc_path)
 
 
-def process(document, output_path, dump_text=False, dump_json=False):
+def process(document: Dict[str, Any],
+            output_path: str,
+            dump_text: bool = False,
+            dump_json: bool = False) -> Dict[str, Any]:
+    """Processes a document receieved from the API.
+
+    :param document: document to process
+    :param output_path: location to store the output
+    :param dump_text: flag to dump the text content to a file, defaults to False
+    :param dump_json: flag to dump the json contne to a file, defaults to False
+    :return: analysis of the document
+    """
     start_time = time.time()
     js_content = {ResponseField.IN_STATUS: document["status"]}
     js_content = {ResponseField.WK_VERSION: APP_VERSION}
@@ -219,7 +196,7 @@ def process(document, output_path, dump_text=False, dump_json=False):
     js_content[ResponseField.TEXT] = text
     js_content[ResponseField.QUALITY] = ocr_evaluation.estimate_quality(text)
     if js_content[ResponseField.QUALITY] < MIN_QUALITY:
-        LOGGER.info(f"Quality of {ocr_output} is too low. Forcing page rotation and doing again...")
+        logger.info(f"Quality of {ocr_output} is too low. Forcing page rotation and doing again...")
         ocr_service.call_ocr(input_file, ocr_output, force_rotate=True)
         assert_path_exists(ocr_output)
         js_content[ResponseField.OCR] = ocr_output
@@ -255,22 +232,30 @@ def process(document, output_path, dump_text=False, dump_json=False):
     return js_content
 
 
-if MOCK == "true":
-    get_next_document = get_next_document_mock
-    update_document = update_document_mock
+def dump_json_to_path(analysis: Dict[str, Any], json_output: str):
+    """Dump the analysis to a json file.
 
-
-def dump_json_to_path(analysis, json_output):
+    :param analysis: result of the analysis
+    :param json_output: location to store the json file
+    """
     with open(json_output, "w") as f:
         stats = {
             k: analysis[k]
             for k in analysis.keys()
-            if k not in {ResponseField.TEXT}#, ResponseField.ANALYSIS_META}
+            if k not in {ResponseField.TEXT}  # ResponseField.ANALYSIS_META}
         }
         json.dump(stats, f, indent=4)
 
 
-if __name__ == "__main__":
+def init():
+    """Initializes the worker."""
+    safe_make_dirs(OUTPUT_PATH)
+    assert_path_exists(OUTPUT_PATH)
+
+
+def main():
+    """Main function of the worker."""
+    init()
     input_status = "no_input_status"
     while True:
         job_id = ""
@@ -282,21 +267,21 @@ if __name__ == "__main__":
             job_id = document.get("id", "not_found")
             if input_status in APIStatus.NOT_FOUND:
                 if input_status != last_input_status:
-                    LOGGER.info(
+                    logger.info(
                         f"Next document status is {input_status}. Assuming no more documents to process."
                         f" Polling every {SLEEP_TIME} seconds."
                         f"\nThis message will only be logged once."
                     )
                 time.sleep(SLEEP_TIME)
             elif input_status in APIStatus.DOWNLOADED:
-                LOGGER.info(f"Got document {document}")
+                logger.info(f"Got document {document}")
                 update_document(job_id, APIStatus.LOCKED, message="Processing...")
                 validate_document(document)
                 update_document(
                     job_id, APIStatus.OCR_INPROGRESS, message="Doing AI analysis..."
                 )
                 analysis = process(document, OUTPUT_PATH, dump_text=True, dump_json=DUMP_JSON)
-                LOGGER.info(
+                logger.info(
                     f"Processing time took: {analysis[ResponseField.TIME]} seconds {analysis[ResponseField.STATISTICS]}"
                 )
                 update_document(job_id, APIStatus.OCR_DONE, analysis=analysis)
@@ -306,12 +291,12 @@ if __name__ == "__main__":
                 APIStatus.LOCKED,
             }:
                 message = f"Status of '{job_id}'' is '{input_status}'. Sleeping for {SLEEP_TIME} seconds..."
-                LOGGER.info(message)
+                logger.info(message)
                 update_document(job_id, APIStatus.FAILED, message=message)
                 time.sleep(SLEEP_TIME)
             else:
                 if input_status != last_input_status:
-                    LOGGER.info(
+                    logger.info(
                         f"Status of '{job_id}' is '{input_status}' (unkown). Assuming no more documents to process."
                         f" Expected one of these statuses {APIStatus.statuses()}"
                         f" Next call will take place in {6*SLEEP_TIME} seconds..."
@@ -319,10 +304,14 @@ if __name__ == "__main__":
                 time.sleep(SLEEP_TIME)
         except Exception as e:
             message = f"Something went wrong for job id '{job_id}'. "
-            LOGGER.exception(message)
+            logger.exception(message)
             message += str(e)
             if job_id:
                 update_document(
                     job_id, APIStatus.FAILED, message=message, raise_failure=False, analysis=analysis
                 )
             time.sleep(SLEEP_TIME)
+
+
+if __name__ == "__main__":
+    main()

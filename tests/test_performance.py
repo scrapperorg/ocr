@@ -3,15 +3,14 @@ import os
 import logging
 import json
 import numpy as np
+from tests.util import get_next_document_mock
 from ocr_worker import (process,
                         validate_document,
-                        get_next_document_mock,
-                        safe_make_dirs,
-                        APP_VERSION,
-                        )
+                        safe_make_dirs,)
 
+from app.config import APP_VERSION
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def files_in_folder(mypath, filter=""):
@@ -42,16 +41,16 @@ def run_performance_test(input_dir, out_dir, analysis_file=f'perf_analysis_defau
     with open(out_file, "w") as f:
         f.write("")
     for corpus in folders_in_folder(input_dir):
-        LOGGER.info(corpus)
+        logger.info(corpus)
         out_corpus = os.path.join(out_dir, os.path.basename(corpus))
         safe_make_dirs(out_corpus)
         for law_dir in folders_in_folder(corpus):
             out_law_dir = os.path.join(out_corpus, os.path.basename(law_dir))
             safe_make_dirs(out_law_dir)
-            LOGGER.info(law_dir)
+            logger.info(law_dir)
             law = os.path.basename(law_dir)
             for pdf_file in files_in_folder(law_dir, filter=".pdf"):
-                LOGGER.info(pdf_file)
+                logger.info(pdf_file)
                 doc_id = os.path.basename(pdf_file).replace(".pdf", "")
                 document = get_next_document_mock(doc_id, law_dir)
                 try:

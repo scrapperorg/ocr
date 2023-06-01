@@ -2,24 +2,26 @@ import logging
 import os
 from collections import defaultdict
 from io import BytesIO
+from typing import Dict, List, Tuple
 
 import fitz
 import numpy as np
 import spacy
 import spacy_alignments as tokenizations
 from sklearn.metrics.pairwise import cosine_similarity
+from spacy.language import Language
 from spacy.matcher import PhraseMatcher
-from spacy.tokens import Token
+from spacy.tokens import Doc, Span, Token
 from spacy.util import filter_spans
 
+from app.config import VECTOR_SEARCH
 from app.services.synonyms import get_synonyms
 from app.services.text_processing import remove_diacritics
 from app.services.vector_searcher import VectorSearcher
 from app.utils.file_util import read_text_file
 from nlp.resources.constants import KEYWORDS_PATH
 
-LOGGER = logging.getLogger(__name__)
-VECTOR_SEARCH = bool(os.environ.get("VECTOR_SEARCH", False))
+logger = logging.getLogger(__name__)
 NLP = None
 KEYWORDS_AS_DOCS = None
 ORTH_MATCHER = None
@@ -28,18 +30,18 @@ LEMMA_MATCHER = None
 VECTOR_SEARCHER = VectorSearcher()
 
 
-def load_spacy_global_model():
+def load_spacy_global_model() -> spacy.language.Language:
     """Load spacy global model"""
     global NLP
     enable_ner = bool(os.environ.get("ENABLE_NER", False))
-    pipelines_to_disable = ["ner", "parser"]
+    pipelines_to_disable = ["ner"]
     if enable_ner:
         pipelines_to_disable = []
     model_name = os.environ.get("SPACY_MODEL", "ro_legal_fl")
     if not spacy.util.is_package(model_name):
         model_name = "ro_core_news_lg"
     NLP = spacy.load(model_name, disable=pipelines_to_disable)
-    LOGGER.info(f"Loaded model {model_name}.")
+    logger.info(f"Loaded model {model_name}.")
     return NLP
 
 
@@ -47,13 +49,13 @@ NLP = load_spacy_global_model()
 Token.set_extension("synonyms", getter=get_synonyms)
 
 
-def process_keywords_with_spacy(keywords, nlp):
+def process_keywords_with_spacy(keywords: List[str], nlp: Language) -> List[Doc]:
     """Process keywords with spacy"""
     keywords_as_docs = list(nlp.pipe(keywords))
     return keywords_as_docs
 
 
-def make_lemma_matcher(keywords_as_docs, nlp):
+def make_lemma_matcher(keywords_as_docs: List[Doc], nlp: Language) -> PhraseMatcher:
     """Lemma based matcher"""
     lemma_matcher = PhraseMatcher(nlp.vocab, attr="LEMMA")
     for kw in keywords_as_docs:
@@ -61,7 +63,7 @@ def make_lemma_matcher(keywords_as_docs, nlp):
     return lemma_matcher
 
 
-def make_orth_matcher(keywords_as_docs, nlp):
+def make_orth_matcher(keywords_as_docs: List[Doc], nlp: Language) -> PhraseMatcher:
     """Lower case based matcher"""
     orth_matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
     for kw in keywords_as_docs:
@@ -69,13 +71,24 @@ def make_orth_matcher(keywords_as_docs, nlp):
     return orth_matcher
 
 
-def get_token_context(token, window=1):
+def get_token_context(token: Token, window: int = 1):
+    """Obtain the context of a token in a document."""
     start = max(token.i - window, 0)
     end = min(token.i + window + 1, len(token.doc))
     return token.doc[start:end]
 
 
-def filter_synonyms(token, synonyms, nlp, threhsold=0.5):
+def filter_synonyms(
+    token: Token, synonyms: List[str], nlp: Language, threhsold: float = 0.5
+) -> List[str]:
+    """Filter synonyms based on cosine similarity with the context.
+
+    :param token: spacy token with synonyms property
+    :param synonyms: list of synonyms
+    :param nlp: spacy language model
+    :param threhsold: cosine similarity threshold, defaults to 0.5
+    :return: list of synonyms that are similar to the context
+    """
     if not synonyms:
         return []
     vectors = [nlp.vocab[synonym].vector for synonym in synonyms]
@@ -84,7 +97,8 @@ def filter_synonyms(token, synonyms, nlp, threhsold=0.5):
     return [synonyms[location] for location in locations]
 
 
-def get_token_variants(keyword_token):
+def get_token_variants(keyword_token: Token) -> List[str]:
+    """Get all variants of a token with synonyms, diacritics and no diac."""
     variants = [
         keyword_token.text,
         remove_diacritics(keyword_token.text),
@@ -96,7 +110,12 @@ def get_token_variants(keyword_token):
     return list(set(variants))
 
 
-def make_keywords_in_spacy(keywords_as_docs, nlp):
+def make_keywords_in_spacy(keywords_as_docs: List[Token], nlp: Language) -> None:
+    """Change the NLP pipeline to include the keywords as entities.
+
+    :param keywords_as_docs: list of keywords as spacy docs
+    :param nlp: spacy language model
+    """
     if "span_ruler" in nlp.pipe_names:
         nlp.remove_pipe("span_ruler")
     ruler = nlp.add_pipe("span_ruler")
@@ -115,24 +134,30 @@ def make_keywords_in_spacy(keywords_as_docs, nlp):
     ruler.add_patterns(patterns)
 
 
-def update_global_kewyord_vars(keywords):
+def update_global_kewyord_vars(keywords: List[str]) -> None:
+    """Update the global variables used for keyword matching.
+
+    :param keywords: List of string keywords
+    """
     global KEYWORDS_AS_DOCS, ORTH_MATCHER, LEMMA_MATCHER, VECTOR_SEARCHER
     KEYWORDS_AS_DOCS = process_keywords_with_spacy(keywords, NLP)
     ORTH_MATCHER = make_orth_matcher(KEYWORDS_AS_DOCS, NLP)
     LEMMA_MATCHER = make_lemma_matcher(KEYWORDS_AS_DOCS, NLP)
     make_keywords_in_spacy(KEYWORDS_AS_DOCS, NLP)
     if VECTOR_SEARCH:
-        LOGGER.info("Building vector searcher for keywords...")
+        logger.info("Building vector searcher for keywords...")
         VECTOR_SEARCHER.fit(KEYWORDS_AS_DOCS)
 
 
-def load_response_keywords(keywords_response):
-    return set(
-        [kwd["name"].strip() for kwd in keywords_response if kwd["name"].strip()]
+def load_response_keywords(keywords_response: List[dict]) -> List[str]:
+    """Utility function to get the keywords as string from the API response."""
+    return list(
+        set([kwd["name"].strip() for kwd in keywords_response if kwd["name"].strip()])
     )
 
 
-def load_default_file_keywords():
+def load_default_file_keywords() -> List[dict]:
+    """Load the default keywords from the file."""
     keywords = [
         word for word in read_text_file(KEYWORDS_PATH).split("\n") if word.strip()
     ]
@@ -140,124 +165,12 @@ def load_default_file_keywords():
     return [{"name": keyword} for keyword in keywords]
 
 
-"""
-def highlight_keywords_semantic(input_pdf_path, output_pdf_path):
-    # Under construction
-    highlight_meta_results = []
-    with fitz.open(input_pdf_path) as pdfDoc:
-        for pg in range(pdfDoc.page_count):
-            page = pdfDoc[pg]
-            word_coordinates = page.get_text_words()
-            word_coordinates_index = {}
-            for coord in word_coordinates:
-                word = coord[4]
-                stem = normalize_word(word)
-                if word not in word_coordinates_index:
-                    word_coordinates_index[stem] = []
-                    word_coordinates_index[stem].append(
-                        coord[1:4]
-                    )  # rectangle coordinates indexed by stem
-            for keyword in KEYWORDS:
-                # TODO: currently able to match based on individual stems
-                # TODO: extend to multiword expressions
-                # TODO: use spacy to match based on lemmas instead of stems
-                keyword_stem = normalize_word(keyword)
-                if keyword_stem in word_coordinates_index:
-                    highlight_meta_result = {
-                        "keyword": keyword,
-                        "occs": [],
-                    }  # TODO: parametrize format
-                    for area in word_coordinates_index[keyword_stem]:
-                        location_js = {
-                            "page": pg,
-                            "location": {
-                                "x1": area[1],
-                                "x2": area[2],
-                                "y1": area[0],
-                                "y2": area[4],
-                            },
-                        }
-                        highlight_meta_result["occs"].append(location_js)
-                    highlight_meta_results.append(highlight_meta_result)
+def do_matching(doc: Doc) -> List[Span]:
+    """Do the matching of the keywords in the document.
 
-                    highlight = page.add_highlight_annot(fitz.Rect(area[0:4]))
-                    highlight.update()
-        output_buffer = BytesIO()
-        pdfDoc.save(output_buffer)
-
-    with open(output_pdf_path, mode="wb") as f:
-        f.write(output_buffer.getbuffer())
-
-    return highlight_meta_results
-    # TODO: handle errors
-
-
-def highlight_keywords_strlev(input_pdf_path, output_pdf_path):
-    highlight_meta_results = defaultdict(list)
-    with fitz.open(input_pdf_path) as pdfDoc:
-        for pg in range(pdfDoc.page_count):
-            page = pdfDoc[pg]
-            for keyword in KEYWORDS:
-                matching_val_areas = page.search_for(keyword)
-                for area in matching_val_areas:
-                    # TODO: handle multiword expressions to only return one occurrence (first word only)
-                    location_js = {
-                        "page": pg,
-                        "location": {
-                            "x1": area.x0,
-                            "x2": area.x1,
-                            "y1": area.y0,
-                            "y2": area.y1,
-                        },
-                    }
-                    highlight_meta_results[keyword].append(location_js)
-
-                highlight = page.add_highlight_annot(matching_val_areas)
-                highlight.set_colors(stroke=[0.5, 1, 1])
-                highlight.update()
-        output_buffer = BytesIO()
-        pdfDoc.save(output_buffer)
-
-    with open(output_pdf_path, mode="wb") as f:
-        f.write(output_buffer.getbuffer())
-
-    highlight_meta_js = []
-    for k in highlight_meta_results:
-        highlight_meta_js.append(
-            {
-                "keyword": k,
-                "occs": highlight_meta_results[k],
-                "total_occs": len(highlight_meta_results[k]),
-            }
-        )
-    return highlight_meta_js
-    # TODO: handle errors
-"""
-
-
-def filter_matches(matches):
-    """Filter a sequence of spans and remove duplicates or overlaps. Useful for
-    creating named entities (where one token can only be part of one entity) or
-    when merging spans with `Retokenizer.merge`. When spans overlap, the (first)
-    longest span is preferred over shorter spans.
+    :param doc: spacy document
+    :return: list of spans with matched keywords
     """
-
-    def get_sort_key(match):
-        return (match[2] - match[1], -match[1])
-
-    sorted_matches = sorted(matches, key=get_sort_key, reverse=True)
-    result = []
-    seen_tokens = set()
-    for match_id, start, end in sorted_matches:
-        # Check for end - 1 here because boundaries are inclusive
-        if start not in seen_tokens and end - 1 not in seen_tokens:
-            result.append((match_id, start, end))
-            seen_tokens.update(range(start, end))
-    result = sorted(result, key=lambda match: match[0])
-    return result
-
-
-def do_matching(doc):
     matches = LEMMA_MATCHER(doc, as_spans=True)
     matches.extend(ORTH_MATCHER(doc, as_spans=True))
     matches.extend(doc.spans["ruler"])
@@ -265,7 +178,15 @@ def do_matching(doc):
     return matches
 
 
-def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
+def highlight_keywords_spacy(
+    input_pdf_path: str, output_pdf_path: str
+) -> Tuple[Dict, Dict]:
+    """Highlight keywords of a PDF file and write the output.
+
+    :param input_pdf_path: input PDF file
+    :param output_pdf_path: output PDF file
+    :return: metadata and statistics
+    """
     highlight_meta_results = defaultdict(list)
     statistics = {}
     num_ents = 0
@@ -287,7 +208,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
             for entity in matches:
                 num_kwds += 1
                 string_id = entity.label_
-                LOGGER.debug(
+                logger.debug(
                     f"{string_id}, {entity.start}, {entity.end}, {entity.text}"
                 )
                 indecsi = sum(spc2pdf[entity.start : entity.end], [])
@@ -311,7 +232,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
             for entity in VECTOR_SEARCHER.search(doc):
                 # num_kwds += 1
                 string_id = entity.label_
-                LOGGER.debug(
+                logger.debug(
                     f"{string_id}, {entity.start}, {entity.end}, {entity.text}"
                 )
                 indecsi = sum(spc2pdf[entity.start : entity.end], [])
@@ -329,7 +250,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
                     }
                     # highlight_meta_results[string_id].append(location_js)
                 highlight = page.add_highlight_annot(pozitii)
-                highlight.set_colors(stroke=[0.5, 1, 1])
+                highlight.set_colors(stroke=[0.8, 1, 1])
                 highlight.set_info(content=string_id)
                 highlight.update()
 
@@ -344,7 +265,7 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
                     continue
                 num_ents += 1
                 string_id = entity.text
-                LOGGER.debug(
+                logger.debug(
                     f"{string_id}, {entity.start}, {entity.end}, {entity.text}"
                 )
                 indecsi = sum(spc2pdf[entity.start : entity.end], [])
@@ -384,12 +305,21 @@ def highlight_keywords_spacy(input_pdf_path, output_pdf_path):
             }
         )
     return highlight_meta_js, statistics
-    # TODO: handle errors
 
 
-def highlight_keywords(input_pdf_path, output_pdf_path, keywords, last_modified):
+def highlight_keywords(
+    input_pdf_path: str, output_pdf_path: str, keywords: List[Dict], last_modified: str
+) -> Tuple[Dict, Dict]:
+    """Highlight keywords of a PDF file and write the output.
+
+    :param input_pdf_path: input PDF file
+    :param output_pdf_path: output PDF file
+    :param keywords: keywords list from API
+    :param last_modified: hash of the keywords list
+    :return: metadata and statistics
+    """
     global LAST_KEYWORDS_HASH
-    LOGGER.debug(
+    logger.debug(
         f"Highlighting with keywords list hash '{last_modified}' of '{len(keywords)}' keywords"
     )
     if last_modified != LAST_KEYWORDS_HASH:
@@ -398,8 +328,8 @@ def highlight_keywords(input_pdf_path, output_pdf_path, keywords, last_modified)
             update_global_kewyord_vars(keywords)
             LAST_KEYWORDS_HASH = last_modified
         except Exception:
-            LOGGER.exception("Failed to update the list of keywords.")
-        LOGGER.info(
+            logger.exception("Failed to update the list of keywords.")
+        logger.info(
             f"Highlighting with keywords list hash '{last_modified}' of '{len(keywords)}' keywords"
         )
     return highlight_keywords_spacy(input_pdf_path, output_pdf_path)

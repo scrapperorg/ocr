@@ -1,10 +1,12 @@
+
 import os
 import logging
 import pytest
+from tests.util import get_next_document_mock
 from ocr_worker import (process,
                         validate_document,
-                        get_next_document_mock,
-                        safe_make_dirs, )
+                        safe_make_dirs,
+                        shorten_analysis)
 
 DOC_DIR = 'nlp/documents/'
 
@@ -17,20 +19,6 @@ def list_docs(dir):
         if '.pdf' in fis_name:
             yield fis_name
 
-"""
-def test_process_entire_dir():
-    for fis_name in list_docs(DOC_DIR):
-        doc_id, _ = os.path.splitext(os.path.basename(fis_name))
-        output_dir = os.path.join(DOC_DIR, doc_id)
-        safe_make_dirs(output_dir)
-        document = get_next_document_mock(doc_id, DOC_DIR)
-        try:
-            validate_document(document)
-            analysis = process(document, output_dir)
-            dump_json(analysis, output_dir)
-        except Exception as e:
-            LOGGER.info(F'Eșuat {document}', str(e))
-"""
 
 def pipeline(fis_name,
              keywords_hash="1",
@@ -70,7 +58,12 @@ def test_empty_pdf():
 
 def test_typos_pdf():
     analysis = pipeline("typos.pdf")
-    print(1)
+    analysis['statistics'] == {'num_pages': 1,
+                               'num_ents': 0,
+                               'num_kwds': 1,
+                               'num_wds': 14,
+                               'num_chars': 124}
+
 
 def test_strange_pdf(caplog):
     caplog.set_level(logging.INFO)
@@ -107,3 +100,11 @@ def test_update_keywords_list():
     kwds2 = [{'name': 'achiz1ție'}]
     analysis = pipeline("typos.pdf", keywords_hash="2", keywords=kwds2)
     assert analysis['highlight_metadata'][0]['total_occs'] == 1
+
+
+def test_shorten_analysis():
+    analysis = pipeline('normal.pdf')
+    orig_len = len(analysis['text'])
+    analysis = shorten_analysis(analysis)
+    assert len(analysis['text']) < orig_len
+    LOGGER.info(analysis['statistics'])

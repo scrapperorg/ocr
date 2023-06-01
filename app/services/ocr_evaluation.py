@@ -1,5 +1,6 @@
 import logging
 import re
+from typing import Set
 
 import nltk
 
@@ -7,7 +8,7 @@ from app.services.text_processing import remove_diacritics
 from app.utils.file_util import read_text_file
 from nlp.resources.constants import RO_CHARS, VOCAB_PATH, WORDLIST_PATH
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 nltk.download("punkt")
 nltk.download("stopwords")
@@ -15,12 +16,13 @@ nltk.download("stopwords")
 STEMMER = nltk.stem.snowball.SnowballStemmer("romanian")
 
 
-def normalize_word(token):
-    # TODO: stem
+def normalize_word(token: str) -> str:
+    """Normalize a word by removing diacritics and stemming it."""
     return remove_diacritics(STEMMER.stem(token))
 
 
-def load_vocabulary_words():
+def load_vocabulary_words() -> Set[str]:
+    """Load vocabulary words from the default vocabulary file and the custom wordlist."""
     vocab_words = set(read_text_file(VOCAB_PATH).split())
     custom_words = set(read_text_file(WORDLIST_PATH).split())
     vocab_words = vocab_words.union(custom_words)
@@ -36,7 +38,8 @@ def load_vocabulary_words():
 VOCABULARY_WORDS = load_vocabulary_words()
 
 
-def validate_text(text):
+def validate_text(text: str) -> bool:
+    """Validate text by removing empty lines and OCR skipped pages."""
     if text.startswith("[OCR skipped on page(s)"):
         return False
     if len(text.strip()) == 0:
@@ -44,17 +47,17 @@ def validate_text(text):
     return True
 
 
-def cer(text):
+def cer(text: str) -> float:
     """Character error rate (the higher the better score)"""
     total_chars = len(text)
     correct_chars = len([c for c in text.lower() if c in RO_CHARS])
-    LOGGER.debug(
+    logger.debug(
         f"[CER] Atypical characters: {set([c for c in text.lower() if c not in RO_CHARS])}; CER={correct_chars/total_chars * 100}"
     )
     return correct_chars / total_chars
 
 
-def wer(text):
+def wer(text: str) -> float:
     """Word error rate (the higher the better score)"""
     # Tokenize and normalize text
     tokenized_text = nltk.word_tokenize(text.lower())
@@ -72,15 +75,14 @@ def wer(text):
             incorrect_words.add(word)
         all_words += 1
     if all_words == 0:
-        LOGGER.warning("[WER] No words found in text.")
+        logger.warning("[WER] No words found in text.")
         return 0
-    LOGGER.info(f"[WER] WER={correct_words / all_words * 100}%")
-    LOGGER.debug(f"[WER] Incorrect words: {incorrect_words})")
-
+    logger.info(f"[WER] WER={correct_words / all_words * 100}%")
+    logger.debug(f"[WER] Incorrect words: {incorrect_words})")
     return correct_words / all_words
 
 
-def estimate_quality(text):
+def estimate_quality(text: str) -> float:
     """Estimate output quality based on plausible characters and words in the dictionary."""
     # TODO: also leverage already implemented "confidence" score from Tesseract
     if not validate_text(text):

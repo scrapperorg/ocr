@@ -1,15 +1,26 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
+## [1.1.0] 31.05.2023
+### Added
+- summarization when payload fails
+- type annotations to functions
+### Changed
+- code cleaning so that env variables are in a single file
+### Removed
+- web API
 
 ## [1.0.1] 17.05.2023
+### Changed
 - fix issue with span_ruler pipe when already there
 - improved robustness when keywords loading fails
 
 ## [1.0.0] 09.05.2023
+### Added
+- reading keywords from next-document response
+### Changed
 - ro_legal as default model
 - context on full keyword
-- reading keywords from next-document response
 
 
 ## [0.6.3] 10.04.2023
