@@ -9,6 +9,7 @@ Adding notes to what is being changed from time to time
 - code cleaning so that env variables are in a single file
 ### Removed
 - web API
+- web dependencies
 
 ## [1.0.1] 17.05.2023
 ### Changed
