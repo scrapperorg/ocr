@@ -1,6 +1,11 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
+## [1.1.3] 03.06.2023
+### Changed
+- summarization to be correct
+- better logging
+
 ## [1.1.2] 31.05.2023
 ### Added
 - summarization when payload fails

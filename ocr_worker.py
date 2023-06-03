@@ -17,12 +17,15 @@ from app.config import (API_ENDPOINT,
                         WORKER_ID)
 
 from app.constants import (APIStatus,
-                           ResponseField,)
+                           ResponseField,
+                           BodyField,)
 
 from app.services import (doc_analysis,
                           ocr_evaluation,
                           ocr_service,
                           summarization,)
+
+from app.utils.utils import all_keys_but
 from app.utils.file_util import make_derived_file_name
 from tenacity import before_log, retry, stop_after_attempt
 
@@ -93,27 +96,22 @@ def get_document(id: str) -> Dict[Any, Any]:
     return response.json()
 
 
-def shorten_analysis(analysis: Dict[str, Any]) -> Dict[str, Any]:
+def shorten_analysis(analysis: Dict[str, Any],
+                     for_good: bool = False) -> Dict[str, Any]:
     """Shortens the analysis field of the response."""
     analysis[ResponseField.TEXT] = summarization.summarize(analysis[ResponseField.TEXT])
+    if for_good:
+        analysis[ResponseField.ANALYSIS_META] = []
     return analysis
 
 
-def shorten_payload(body: Dict[str, Any]) -> Dict[str, Any]:
+def shorten_payload(body: Dict[str, Any],
+                    for_good: bool = False) -> Dict[str, Any]:
     """Shortens the analysis field of the response."""
-    analysis = body.get(ResponseField.ANALYSIS, {})
+    analysis = body.get(BodyField.ANALYSIS, {})
     if analysis:
-        body[ResponseField.ANALYSIS] = shorten_analysis(analysis)
-    return body
-
-
-def minimal_payload(body: Dict[str, Any]) -> Dict[str, Any]:
-    """Makes minimal payload to be able to get the partial results."""
-    analysis = body.get(ResponseField.ANALYSIS, {})
-    if analysis:
-        analysis[ResponseField.TEXT] = summarization.summarize(analysis[ResponseField.TEXT])
-        analysis[ResponseField.ANALYSIS_META] = []
-        body[ResponseField.ANALYSIS] = analysis
+        body[BodyField.ANALYSIS] = shorten_analysis(analysis,
+                                                    for_good=for_good)
     return body
 
 
@@ -130,11 +128,11 @@ def update_document(id, status, message="", analysis={}, raise_failure=True):
     """
     endpoint = os.path.join(API_ENDPOINT, "ocr-updates")
     body = {
-        ResponseField.WORKER: WORKER_ID,
-        "id": id,
-        "status": status,
-        "message": message,
-        "analysis": analysis,
+        BodyField.WORKER: WORKER_ID,
+        BodyField.ID: id,
+        BodyField.STATUS: status,
+        BodyField.MESSAGE: message,
+        BodyField.ANALYSIS: analysis,
     }
     stats = analysis.get(ResponseField.STATISTICS, {})
     logger.info(
@@ -144,12 +142,17 @@ def update_document(id, status, message="", analysis={}, raise_failure=True):
     response = requests.post(endpoint, json=body)
     logger.info(f"Endpoint response {response.text} status {response.status_code}")
     if response.status_code == 413:
-        logger.info("Trying again with shorter payload")
-        response = requests.post(endpoint, json=shorten_payload(body))
+        logger.info("Trying again with summarized payload")
+        body = shorten_payload(body, for_good=False)
+        body[BodyField.MESSAGE] = "Payload too large; summarized payload sent."
+        response = requests.post(endpoint, json=body)
         logger.info(f"Endpoint response {response.text} status {response.status_code}")
         if response.status_code == 413:
-            logger.warning("Payload too large even after shortening. Trying again with empty payload.")
-            response = requests.post(endpoint, json=shorten_payload(body))
+            logger.warning("Payload too large even after shortening. Trying again with minimal payload.")
+            body = shorten_payload(body, for_good=True)
+            body[BodyField.MESSAGE] = "Payload too large; minimal payload sent."
+            logger.info(f'Minimal payload body: {body}')
+            response = requests.post(endpoint, json=body)
             logger.info(f"Endpoint response {response.text} status {response.status_code}")
     if raise_failure:
         raise_for_status(response)
@@ -288,7 +291,7 @@ def main():
                     )
                 time.sleep(SLEEP_TIME)
             elif input_status in APIStatus.DOWNLOADED:
-                logger.info(f"Got document {document}")
+                logger.info(f"Got document {all_keys_but(document, keys={'keywords'})}")
                 update_document(job_id, APIStatus.LOCKED, message="Processing...")
                 validate_document(document)
                 update_document(

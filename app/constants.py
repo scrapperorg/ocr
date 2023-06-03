@@ -1,3 +1,11 @@
+class BodyField:
+    WORKER = "worker_id"
+    ID = "id"
+    STATUS = "status"
+    MESSAGE = "message"
+    ANALYSIS = "analysis"
+
+
 class ResponseField:
     WORKER = "worker_id"
     IN = "input_file"
@@ -14,6 +22,7 @@ class ResponseField:
     TIME = "processing_time"
     WK_VERSION = "worker_version"
     KWDS_HASH = "keywords_hash"
+    KWDS = "keywords"
 
 
 class Status:
