@@ -1,6 +1,10 @@
 # Changelog
 Adding notes to what is being changed from time to time
 
+## [1.1.4] 03.06.2023
+### Changed
+- speciffic summarization language
+
 ## [1.1.3] 03.06.2023
 ### Changed
 - summarization to be correct

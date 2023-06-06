@@ -2,7 +2,7 @@ import logging
 import os
 
 # SECTION: General
-APP_VERSION = "1.1.3"
+APP_VERSION = "1.1.4"
 
 
 # SECTION: OCR worker
