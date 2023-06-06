@@ -34,7 +34,7 @@ def load_spacy_global_model() -> spacy.language.Language:
     """Load spacy global model"""
     global NLP
     enable_ner = bool(os.environ.get("ENABLE_NER", False))
-    pipelines_to_disable = ["ner"]
+    pipelines_to_disable = ["attribute_ruler", "ner"]
     if enable_ner:
         pipelines_to_disable = []
     model_name = os.environ.get("SPACY_MODEL", "ro_legal_fl")
