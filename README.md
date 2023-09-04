@@ -244,12 +244,3 @@ docker compose -f docker-compose_perf.yml logs
 ```
 
 
-### Run API
-API is currently for testing purposes.
-```bash
-# either run the script
-./scripts/start-dev.sh
-
-# or simply start
-uvicorn --host localhost --port 8080 --log-level debug --log-config logging.ini api.api:app
-```
